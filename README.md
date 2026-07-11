@@ -9,10 +9,14 @@ You are not limited to Python-sized maps.
 
 ## How to use (easiest — like Base-X)
 
-1. Open `WorldPromptEngine.uproject` in **UE 5.8** (first open will **compile C++** — let it finish)
-2. Wait for Output Log: `WorldPromptEngine: online`
-3. **Tools → World Prompt Engine → Place Builder In Level**
-4. Select **WorldPromptBuilder** → set **Prompt Text** → **Generate World**
+1. Open `WorldPromptEngine.uproject` in **UE 5.8**
+2. If it asks to build the editor, click **No**
+3. Wait for Output Log: `WorldPromptEngine: online`
+4. **Tools → World Prompt Engine → Place Builder In Level**
+5. Select **WorldPromptBuilder** → set **Prompt Text** → **Generate World**
+
+### If Unreal asks to build the editor
+Click **No**. The plugin runs in Python today. Optional C++ sources are parked in `Native/Source/` for a later native build.
 
 ### Huge worlds (native C++)
 
@@ -43,5 +47,6 @@ import init_unreal
 init_unreal.preforge_structures()
 ```
 
+
 ### First launch
-This is a **C++ project**. UE will compile on open. On Mac you need **Xcode**. After that, Python UI and native scale both work.
+Use UE **5.8**. Enable Python Editor Script Plugin if prompted. Then use the Tools menu above.

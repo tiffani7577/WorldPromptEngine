@@ -2,14 +2,7 @@
 	"FileVersion": 3,
 	"EngineAssociation": "5.8",
 	"Category": "World Generation",
-	"Description": "Hybrid C++/Python WorldPromptEngine host for huge World Partition worlds.",
-	"Modules": [
-		{
-			"Name": "WorldPromptEngineHost",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		}
-	],
+	"Description": "WorldPromptEngine host for UE 5.8 (Python workflow + optional native scale core).",
 	"Plugins": [
 		{
 			"Name": "WorldPromptEngine",
@@ -20,7 +13,7 @@
 			"Enabled": true
 		},
 		{
-			"Name": "ProceduralContentGeneration",
+			"Name": "PCG",
 			"Enabled": true
 		},
 		{

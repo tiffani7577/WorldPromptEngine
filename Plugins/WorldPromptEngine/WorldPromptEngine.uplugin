@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.1.0",
+	"VersionName": "1.1.1",
 	"FriendlyName": "WorldPromptEngine",
-	"Description": "Hybrid native+Python world generation for UE 5.8. C++ tile/scale core for huge World Partition worlds; Python prompt UI and content workflow.",
+	"Description": "Natural-language world generation for UE 5.8. Python prompt/builder workflow. Optional C++ Source remains for native scale builds.",
 	"Category": "World Generation",
 	"CreatedBy": "PrismaticLab",
 	"CreatedByURL": "",
@@ -15,25 +15,13 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
-	"Modules": [
-		{
-			"Name": "WorldPromptEngine",
-			"Type": "Runtime",
-			"LoadingPhase": "Default"
-		},
-		{
-			"Name": "WorldPromptEngineEditor",
-			"Type": "Editor",
-			"LoadingPhase": "Default"
-		}
-	],
 	"Plugins": [
 		{
 			"Name": "PythonScriptPlugin",
 			"Enabled": true
 		},
 		{
-			"Name": "ProceduralContentGeneration",
+			"Name": "PCG",
 			"Enabled": true
 		},
 		{
