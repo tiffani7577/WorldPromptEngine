@@ -1,0 +1,265 @@
+"""
+init_unreal.py — WorldPromptEngine plugin entry point (UE 5.8.0)
+
+Auto-executed by PythonScriptPlugin at editor startup (PostEngineInit).
+
+Wiring:
+  - GLOBAL_STATE: thread-safe shared state (deque command queue + flags).
+  - utility_bridge WebSocket server on a background daemon thread
+    (never touches unreal APIs).
+  - Slate post-tick callback registered on the MAIN thread that drains the
+    queue and advances frame-budgeted generation tasks via art_engine.
+"""
+
+import collections
+import threading
+
+import unreal
+
+import art_engine
+import content_library
+import utility_bridge
+
+
+# ---------------------------------------------------------------------------
+# Global thread-safe state
+# ---------------------------------------------------------------------------
+
+GLOBAL_STATE = {
+    # deque append/popleft are GIL-atomic => safe producer(bg)/consumer(main)
+    "command_queue": collections.deque(),
+    "is_generating": False,
+    "progress": 0.0,
+    "active_task": None,            # generator being advanced each frame
+    "temporary_actors": [],         # actors spawned via bridge commands
+    "current_landscapes": [],       # landscape actor references
+    "last_landscape_bounds": [],
+    "last_heightmap_asset": None,
+    "landscape_subsystem": None,
+    "last_parse": None,             # last prompt_matrix.parse_prompt result
+    "pcg_spawn_table": [],          # resolved asset_manifest entries
+    "last_slope_map": None,         # per-pixel material layer indices
+    "slope_layer_names": [],
+}
+
+_TICK_HANDLE = None
+_BRIDGE_THREAD = None
+
+
+# ---------------------------------------------------------------------------
+# Main-thread post-tick pump
+# ---------------------------------------------------------------------------
+
+def _post_tick(delta_seconds: float):
+    """Runs on the game/main thread every Slate tick."""
+    try:
+        art_engine.consume_queue_tick(GLOBAL_STATE, delta_seconds)
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine._post_tick failed: {}".format(e))
+
+
+def _register_tick():
+    global _TICK_HANDLE
+    try:
+        if hasattr(unreal, "register_slate_post_tick_callback"):
+            _TICK_HANDLE = unreal.register_slate_post_tick_callback(_post_tick)
+            unreal.log("WorldPromptEngine: Slate post-tick callback registered")
+        else:
+            unreal.log_error("WorldPromptEngine: register_slate_post_tick_callback unavailable")
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine._register_tick failed: {}".format(e))
+
+
+def _unregister_tick():
+    global _TICK_HANDLE
+    try:
+        if _TICK_HANDLE is not None and hasattr(unreal, "unregister_slate_post_tick_callback"):
+            unreal.unregister_slate_post_tick_callback(_TICK_HANDLE)
+            _TICK_HANDLE = None
+            unreal.log("WorldPromptEngine: Slate post-tick callback unregistered")
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine._unregister_tick failed: {}".format(e))
+
+
+# ---------------------------------------------------------------------------
+# Background WebSocket bridge thread
+# ---------------------------------------------------------------------------
+
+def _start_bridge_thread():
+    global _BRIDGE_THREAD
+    try:
+        if _BRIDGE_THREAD is not None and _BRIDGE_THREAD.is_alive():
+            unreal.log_warning("WorldPromptEngine: bridge thread already running")
+            return
+        _BRIDGE_THREAD = threading.Thread(
+            target=utility_bridge.run_server,
+            args=(GLOBAL_STATE,),
+            name="WPE_WebSocketBridge",
+            daemon=True,
+        )
+        _BRIDGE_THREAD.start()
+        unreal.log("WorldPromptEngine: WebSocket bridge daemon thread started (port {})".format(
+            utility_bridge.WS_PORT))
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine._start_bridge_thread failed: {}".format(e))
+
+
+# ---------------------------------------------------------------------------
+# Public convenience API (usable from the UE Python console)
+# ---------------------------------------------------------------------------
+
+def generate(width=505, height=505, seed=1337, octaves=6, frequency=0.004,
+             persistence=0.5, lacunarity=2.0, amplitude=1.0, noise="perlin",
+             destination=None):
+    """
+    Kick off a frame-budgeted heightmap generation directly from the
+    Python console:  import init_unreal; init_unreal.generate(seed=42)
+    """
+    try:
+        if destination is None:
+            destination = content_library.heightmap_destination()
+        GLOBAL_STATE["command_queue"].append({
+            "action": "generate_heightmap",
+            "params": {
+                "width": width, "height": height, "seed": seed,
+                "octaves": octaves, "frequency": frequency,
+                "persistence": persistence, "lacunarity": lacunarity,
+                "amplitude": amplitude, "noise": noise,
+                "destination": destination,
+            },
+        })
+        unreal.log("WorldPromptEngine: generation queued ({}x{}, seed {})".format(width, height, seed))
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.generate failed: {}".format(e))
+
+
+def prompt(text: str, width=505, height=505, seed=1337):
+    """
+    Natural language world generation from the Python console:
+      init_unreal.prompt("misty alpine peaks at golden hour")
+    """
+    try:
+        GLOBAL_STATE["command_queue"].append({
+            "action": "generate_from_prompt",
+            "prompt": text,
+            "params": {
+                "width": width,
+                "height": height,
+                "seed": seed,
+                "destination": content_library.heightmap_destination(),
+            },
+        })
+        unreal.log("WorldPromptEngine: prompt queued: '{}'".format(text))
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.prompt failed: {}".format(e))
+
+
+def setup_content(root: str = None):
+    """
+    Create the per-build content folders inside Unreal's Content Browser.
+
+      init_unreal.setup_content()
+      init_unreal.setup_content("/Game/Builds/Forest_01")
+    """
+    try:
+        return content_library.setup_content(root=root)
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.setup_content failed: {}".format(e))
+        return {"ok": False, "error": str(e)}
+
+
+def use_folder(name: str, where: str = None):
+    """
+    Tell the plugin which Content folder to use — just the name (+ optional where).
+
+      init_unreal.use_folder("Forest_01")
+      init_unreal.use_folder("Forest_01", where="/Game/Builds")
+      init_unreal.use_folder("Forest_01", where="Builds")
+      init_unreal.use_folder("/Game/Builds/Forest_01")
+
+    It finds that folder in the Content Browser (or creates it), then routes
+    all mesh lookups through it for this project.
+    """
+    try:
+        return content_library.use_folder(name, where=where)
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.use_folder failed: {}".format(e))
+        return {"ok": False, "error": str(e)}
+
+
+def find_folder(name: str, where: str = None):
+    """Search for a Content folder by name without switching to it yet."""
+    try:
+        return content_library.find_folder(name, where=where)
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.find_folder failed: {}".format(e))
+        return {"ok": False, "error": str(e)}
+
+
+def set_content_root(root: str):
+    """
+    Point this project at a different /Game/... folder for meshes.
+
+      init_unreal.set_content_root("/Game/Builds/Desert_A")
+    """
+    try:
+        return content_library.set_content_root(root, setup=True)
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.set_content_root failed: {}".format(e))
+        return {"ok": False, "error": str(e)}
+
+
+def content_status() -> dict:
+    """Show active content root + which manifest assets are still missing."""
+    try:
+        return content_library.content_status()
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.content_status failed: {}".format(e))
+        return {}
+
+
+def status() -> dict:
+    """Return a snapshot of engine state for debugging."""
+    try:
+        snap = {
+            "is_generating": GLOBAL_STATE["is_generating"],
+            "progress": GLOBAL_STATE["progress"],
+            "queue_depth": len(GLOBAL_STATE["command_queue"]),
+            "temp_actors": len(GLOBAL_STATE["temporary_actors"]),
+            "has_active_task": GLOBAL_STATE["active_task"] is not None,
+            "content_root": content_library.content_root(),
+            "heightmap_destination": content_library.heightmap_destination(),
+        }
+        return snap
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.status failed: {}".format(e))
+        return {}
+
+
+def shutdown():
+    """Manual teardown (tick unregister). Daemon thread dies with the editor."""
+    _unregister_tick()
+
+
+# ---------------------------------------------------------------------------
+# Boot
+# ---------------------------------------------------------------------------
+
+def _boot():
+    try:
+        unreal.log("WorldPromptEngine v1.0.0 initializing (UE 5.8.0 target)...")
+        art_engine  # imported above; touch to satisfy linters
+        _register_tick()
+        _start_bridge_thread()
+        cfg = content_library.load_config()
+        if cfg.get("auto_setup_on_boot", True):
+            content_library.setup_content()
+        unreal.log(
+            "WorldPromptEngine: online. content_root={} | ws://127.0.0.1:{} | "
+            "console: init_unreal.setup_content() / init_unreal.prompt(...)".format(
+                content_library.content_root(), utility_bridge.WS_PORT))
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine._boot failed: {}".format(e))
+
+
+_boot()

@@ -1,0 +1,35 @@
+# Unreal Engine
+Binaries/
+DerivedDataCache/
+Intermediate/
+Saved/
+Build/
+*.sln
+*.xcworkspace
+*.xcodeproj
+.vs/
+.idea/
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+*.egg-info/
+.venv/
+venv/
+
+# OS / editor
+.DS_Store
+*.swp
+*~
+.vscode/
+.cursor/
+
+# Local secrets / env
+.env
+.env.*
+
+# WorldPromptEngine per-project content root override
+Config/WPEContent.json
+**/WPEContent.local.json

@@ -1,0 +1,7 @@
+{
+  "content_root": "/Game/WPE",
+  "heightmap_destination": "/Game/WorldPromptEngine/Heightmaps",
+  "legacy_root": "/Game/WPE",
+  "auto_setup_on_boot": true,
+  "buckets": ["Foliage", "Rocks", "Decals", "Props", "FX", "Materials"]
+}
