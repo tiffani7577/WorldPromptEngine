@@ -169,10 +169,51 @@ TERRAIN_ARCHETYPES = {
         "keywords": {"coral": 3, "reef": 3, "shallow": 2, "turquoise": 2},
         "noise": {"octaves": 3, "frequency": 0.002, "persistence": 0.4, "lacunarity": 1.8, "amplitude": 0.12},
         "pcg_tags": ["seagrass", "rock_beach", "lilypad"],
+        "structure_tags": ["coral_stack", "dock_pier", "temple_ruin"],
+    },
+    "floating_isles": {
+        "keywords": {"floating": 3, "sky": 2, "isles": 3, "airborne": 2, "levitating": 2, "aether": 2},
+        "noise": {"octaves": 6, "frequency": 0.0038, "persistence": 0.58, "lacunarity": 2.3, "amplitude": 0.85},
+        "pcg_tags": ["pine", "rock_large", "wildflower"],
+        "structure_tags": ["floating_boulder", "crystal_spire", "portal_ring", "wizard_tower"],
     },
 }
 
 DEFAULT_ARCHETYPE = "rolling_hills"
+
+# Default structure tags per archetype (wired into parse + manifest)
+ARCHETYPE_STRUCTURE_TAGS = {
+    "alpine_peaks": ["stone_keep", "crystal_spire", "ice_monolith", "ruined_tower"],
+    "rolling_hills": ["village_hut", "barn", "windmill", "stone_circle"],
+    "desert_dunes": ["obelisk", "pyramid", "camp_tents", "giant_bone"],
+    "volcanic_badlands": ["lava_spine", "dragon_perch", "portal_ring", "ruined_tower"],
+    "coastal_cliffs": ["lighthouse", "shipwreck", "dock_pier", "arch_rock"],
+    "tropical_islands": ["village_hut", "temple_ruin", "dock_pier", "coral_stack"],
+    "tundra_flats": ["longhouse", "obelisk", "camp_tents", "ice_monolith"],
+    "dense_rainforest": ["temple_ruin", "totem", "village_hut", "mangrove_root"],
+    "canyon_mesas": ["mesa_butte", "arch_rock", "mine_entrance", "watchtower"],
+    "swamp_wetlands": ["mangrove_root", "dock_pier", "ruined_tower", "totem"],
+    "glacier_fields": ["ice_monolith", "longhouse", "crystal_spire", "stone_keep"],
+    "highland_moors": ["stone_circle", "watchtower", "graveyard", "ruined_tower"],
+    "savanna_plains": ["village_hut", "camp_tents", "obelisk", "barn"],
+    "karst_towers": ["pagoda", "crystal_spire", "temple_ruin", "bridge_arch"],
+    "fjord_valleys": ["longhouse", "lighthouse", "bridge_arch", "waterfall_rocks"],
+    "salt_flats": ["obelisk", "radar_dish", "oil_derrick", "camp_tents"],
+    "redwood_forest": ["totem", "village_hut", "ruined_tower", "waterfall_rocks"],
+    "steppe_ridges": ["camp_tents", "watchtower", "obelisk", "windmill"],
+    "crater_wastes": ["radar_dish", "portal_ring", "ruined_tower", "giant_bone"],
+    "terraced_valleys": ["pagoda", "village_hut", "barn", "bridge_arch"],
+    "archipelago": ["dock_pier", "lighthouse", "village_hut", "shipwreck"],
+    "bamboo_highlands": ["pagoda", "temple_ruin", "totem", "bridge_arch"],
+    "enchanted_forest": ["wizard_tower", "stone_circle", "crystal_spire", "totem"],
+    "obsidian_wastes": ["lava_spine", "portal_ring", "obelisk", "ruined_tower"],
+    "coral_shallows": ["coral_stack", "dock_pier", "temple_ruin", "shipwreck"],
+    "floating_isles": ["floating_boulder", "crystal_spire", "portal_ring", "wizard_tower"],
+}
+
+for _arch_name, _tags in ARCHETYPE_STRUCTURE_TAGS.items():
+    if _arch_name in TERRAIN_ARCHETYPES:
+        TERRAIN_ARCHETYPES[_arch_name].setdefault("structure_tags", list(_tags))
 
 
 # ---------------------------------------------------------------------------
@@ -321,6 +362,96 @@ WEATHER_PRESETS = {
         "fog_density": 0.05, "fog_height_falloff": 0.14, "fog_color": (0.25, 0.12, 0.08),
         "cloud_coverage": 0.3, "sky_rayleigh": 0.45, "exposure_bias": 1.3,
     },
+    "soft_drizzle": {
+        "keywords": {"drizzle": 3, "sprinkle": 2, "light_rain": 2},
+        "sun_intensity": 3.0, "sun_color": (0.8, 0.82, 0.88), "sun_pitch": -50.0, "sun_yaw": 95.0,
+        "fog_density": 0.04, "fog_height_falloff": 0.16, "fog_color": (0.7, 0.74, 0.78),
+        "cloud_coverage": 0.75, "sky_rayleigh": 0.85, "exposure_bias": 0.3,
+    },
+    "hailstorm": {
+        "keywords": {"hail": 3, "hailstorm": 3, "ice_storm": 2},
+        "sun_intensity": 1.0, "sun_color": (0.7, 0.75, 0.85), "sun_pitch": -40.0, "sun_yaw": 130.0,
+        "fog_density": 0.1, "fog_height_falloff": 0.12, "fog_color": (0.55, 0.6, 0.7),
+        "cloud_coverage": 1.0, "sky_rayleigh": 0.55, "exposure_bias": 0.55,
+    },
+    "whiteout": {
+        "keywords": {"whiteout": 3, "white_out": 3},
+        "sun_intensity": 2.5, "sun_color": (0.95, 0.97, 1.0), "sun_pitch": -25.0, "sun_yaw": 180.0,
+        "fog_density": 0.35, "fog_height_falloff": 0.05, "fog_color": (0.92, 0.94, 0.98),
+        "cloud_coverage": 1.0, "sky_rayleigh": 0.5, "exposure_bias": 0.9,
+    },
+    "blood_moon": {
+        "keywords": {"bloodmoon": 3, "blood_moon": 3, "lunar_eclipse": 2},
+        "sun_intensity": 0.08, "sun_color": (0.95, 0.25, 0.2), "sun_pitch": -55.0, "sun_yaw": 320.0,
+        "fog_density": 0.04, "fog_height_falloff": 0.18, "fog_color": (0.25, 0.05, 0.05),
+        "cloud_coverage": 0.35, "sky_rayleigh": 0.4, "exposure_bias": 1.7,
+    },
+    "eclipse": {
+        "keywords": {"eclipse": 3, "solar_eclipse": 3},
+        "sun_intensity": 0.25, "sun_color": (0.6, 0.55, 0.7), "sun_pitch": -60.0, "sun_yaw": 40.0,
+        "fog_density": 0.03, "fog_height_falloff": 0.2, "fog_color": (0.15, 0.12, 0.2),
+        "cloud_coverage": 0.2, "sky_rayleigh": 0.35, "exposure_bias": 1.9,
+    },
+    "toxic_fog": {
+        "keywords": {"toxic": 3, "poison": 2, "acid": 2, "green_fog": 2},
+        "sun_intensity": 2.0, "sun_color": (0.55, 0.9, 0.4), "sun_pitch": -35.0, "sun_yaw": 110.0,
+        "fog_density": 0.2, "fog_height_falloff": 0.08, "fog_color": (0.35, 0.55, 0.25),
+        "cloud_coverage": 0.7, "sky_rayleigh": 0.7, "exposure_bias": 0.5,
+    },
+    "indigo_night": {
+        "keywords": {"indigo": 3, "violet_night": 2, "purple": 1},
+        "sun_intensity": 0.04, "sun_color": (0.45, 0.35, 0.95), "sun_pitch": -50.0, "sun_yaw": 270.0,
+        "fog_density": 0.02, "fog_height_falloff": 0.2, "fog_color": (0.12, 0.08, 0.25),
+        "cloud_coverage": 0.15, "sky_rayleigh": 0.3, "exposure_bias": 1.6,
+    },
+    "desert_night": {
+        "keywords": {"desert_night": 3, "cold_desert": 2, "starry_desert": 2},
+        "sun_intensity": 0.06, "sun_color": (0.7, 0.75, 1.0), "sun_pitch": -65.0, "sun_yaw": 300.0,
+        "fog_density": 0.008, "fog_height_falloff": 0.25, "fog_color": (0.08, 0.1, 0.18),
+        "cloud_coverage": 0.05, "sky_rayleigh": 0.25, "exposure_bias": 1.8,
+    },
+    "humid_dawn": {
+        "keywords": {"humid": 2, "dewy": 3, "dawn_mist": 2},
+        "sun_intensity": 3.8, "sun_color": (1.0, 0.88, 0.75), "sun_pitch": -12.0, "sun_yaw": 80.0,
+        "fog_density": 0.07, "fog_height_falloff": 0.09, "fog_color": (0.85, 0.88, 0.8),
+        "cloud_coverage": 0.4, "sky_rayleigh": 1.15, "exposure_bias": 0.35,
+    },
+    "wildfire_sky": {
+        "keywords": {"wildfire": 3, "smoke_sky": 3, "burning": 2},
+        "sun_intensity": 4.0, "sun_color": (1.0, 0.45, 0.2), "sun_pitch": -30.0, "sun_yaw": 160.0,
+        "fog_density": 0.16, "fog_height_falloff": 0.07, "fog_color": (0.55, 0.3, 0.15),
+        "cloud_coverage": 0.85, "sky_rayleigh": 1.5, "exposure_bias": 0.2,
+    },
+    "clear_midnight": {
+        "keywords": {"midnight": 2, "clear_night": 3, "starlight": 2},
+        "sun_intensity": 0.02, "sun_color": (0.5, 0.6, 0.95), "sun_pitch": -70.0, "sun_yaw": 0.0,
+        "fog_density": 0.005, "fog_height_falloff": 0.25, "fog_color": (0.05, 0.06, 0.12),
+        "cloud_coverage": 0.0, "sky_rayleigh": 0.2, "exposure_bias": 2.0,
+    },
+    "silver_overcast": {
+        "keywords": {"silver": 2, "pewter": 2, "soft_grey": 2},
+        "sun_intensity": 3.2, "sun_color": (0.88, 0.9, 0.95), "sun_pitch": -52.0, "sun_yaw": 25.0,
+        "fog_density": 0.025, "fog_height_falloff": 0.17, "fog_color": (0.75, 0.78, 0.82),
+        "cloud_coverage": 0.9, "sky_rayleigh": 0.75, "exposure_bias": 0.25,
+    },
+    "amber_afternoon": {
+        "keywords": {"amber": 3, "afternoon": 2, "honey_light": 2},
+        "sun_intensity": 7.0, "sun_color": (1.0, 0.78, 0.45), "sun_pitch": -35.0, "sun_yaw": 220.0,
+        "fog_density": 0.018, "fog_height_falloff": 0.2, "fog_color": (0.9, 0.75, 0.5),
+        "cloud_coverage": 0.25, "sky_rayleigh": 1.25, "exposure_bias": 0.1,
+    },
+    "storm_aftermath": {
+        "keywords": {"aftermath": 3, "post_storm": 3, "broken_clouds": 2},
+        "sun_intensity": 4.5, "sun_color": (0.85, 0.9, 1.0), "sun_pitch": -25.0, "sun_yaw": 100.0,
+        "fog_density": 0.035, "fog_height_falloff": 0.14, "fog_color": (0.65, 0.7, 0.78),
+        "cloud_coverage": 0.55, "sky_rayleigh": 0.95, "exposure_bias": 0.35,
+    },
+    "polar_day": {
+        "keywords": {"polar_day": 3, "midnight_sun": 3, "arctic_day": 2},
+        "sun_intensity": 6.0, "sun_color": (0.95, 0.95, 1.0), "sun_pitch": -8.0, "sun_yaw": 10.0,
+        "fog_density": 0.02, "fog_height_falloff": 0.15, "fog_color": (0.85, 0.9, 0.95),
+        "cloud_coverage": 0.3, "sky_rayleigh": 0.8, "exposure_bias": 0.4,
+    },
 }
 
 DEFAULT_WEATHER = "clear_noon"
@@ -375,12 +506,14 @@ def parse_prompt(prompt: str) -> dict:
             "weather_score": best_weather_score,
             "noise": dict(arch["noise"]),
             "pcg_tags": list(arch["pcg_tags"]),
+            "structure_tags": list(arch.get("structure_tags") or ARCHETYPE_STRUCTURE_TAGS.get(best_arch, [])),
             "weather_config": dict(WEATHER_PRESETS[best_weather]),
         }
         try:
             import structure_library
+            # Prefer prompt-aware resolve; seed with archetype structure tags
             result["structures"] = structure_library.resolve_structures(
-                best_arch, prompt)
+                best_arch, prompt, preferred_tags=result["structure_tags"])
         except Exception:
             result["structures"] = []
         return result

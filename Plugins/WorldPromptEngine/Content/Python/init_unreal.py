@@ -253,6 +253,20 @@ def build_huge_world(extent_km: float = 16.0):
         return {"ok": False, "error": str(e)}
 
 
+def preforge_structures(force: bool = False):
+    """
+    Bake the six structure_forge family meshes (Geometry Script if available).
+
+      init_unreal.preforge_structures()
+    """
+    try:
+        import structure_forge
+        return structure_forge.preforge_all_families(force=force)
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.preforge_structures failed: {}".format(e))
+        return {"ok": False, "error": str(e)}
+
+
 def open_ui():
     """
     Open the clickable WorldPromptEngine control panel in your browser.

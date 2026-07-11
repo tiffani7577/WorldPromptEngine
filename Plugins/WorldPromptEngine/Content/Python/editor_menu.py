@@ -44,6 +44,9 @@ def register_menus():
             ("WPE_ContentStatus", "Log Content Status",
              "Print missing mesh folders/assets",
              "import init_unreal; unreal.log(str(init_unreal.content_status()))"),
+            ("WPE_Preforge", "Preforge Structure Meshes",
+             "Bake keep/ruin/crystal/megalith/hut/arch via Geometry Script (or note proxy mode)",
+             "import init_unreal; unreal.log(str(init_unreal.preforge_structures()))"),
         ]
 
         for name, label, tip, py in commands:

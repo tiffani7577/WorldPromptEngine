@@ -34,7 +34,14 @@ Also: **Tools → World Prompt Engine (Native) → Build Native World Tile Plan*
 | World Partition | Stream continents, not one giant mesh |
 | PCG + your Content folder | Foliage / structures at scale |
 
-**Power now:** 25 terrain archetypes · 23 weather presets · 35 structure types (meshes or proxies) · native tile planner for multi-km worlds.
+**Power now:** 26 terrain archetypes · 38 weather presets · structure_forge (6 families: keep/ruin/crystal/megalith/hut/arch) · 35+ structure types wired through the manifest · native tile planner.
+
+Optional bake (in editor Python):
+
+```python
+import init_unreal
+init_unreal.preforge_structures()
+```
 
 ### First launch
 This is a **C++ project**. UE will compile on open. On Mac you need **Xcode**. After that, Python UI and native scale both work.

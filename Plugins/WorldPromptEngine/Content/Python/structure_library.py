@@ -440,18 +440,20 @@ def catalog_stats() -> dict:
     }
 
 
-def resolve_structures(archetype: str, prompt: str = "", max_types: int = 8) -> list:
+def resolve_structures(archetype: str, prompt: str = "", max_types: int = 8,
+                       preferred_tags=None) -> list:
     """
     Pick structure types for an archetype + optional prompt keyword boosts.
-    Returns list of {name, spec, weight}.
+    preferred_tags (from archetype structure_tags / manifest) are boosted.
+    Returns list of {name, spec, weight, forge_family}.
     """
     tokens = [t.strip(".,!?;:'\"()-").lower() for t in (prompt or "").split() if t.strip()]
+    preferred = set(preferred_tags or [])
     scored = []
     for name, spec in STRUCTURE_CATALOG.items():
         arches = spec.get("archetypes") or []
         allowed = ("*" in arches) or (archetype in arches) or (
-            EXTRA_ARCHETYPE_ALIASES.get(archetype) in arches)
-        # Still allow strong keyword hits even off-archetype
+            EXTRA_ARCHETYPE_ALIASES.get(archetype) in arches) or (name in preferred)
         kw = spec.get("keywords") or {}
         kw_score = sum(kw.get(t, 0) for t in tokens)
         if not allowed and kw_score < 3:
@@ -459,10 +461,29 @@ def resolve_structures(archetype: str, prompt: str = "", max_types: int = 8) -> 
         weight = 1.0 + kw_score
         if allowed:
             weight += 2.0
-        scored.append((weight, name, spec))
+        if name in preferred:
+            weight += 3.0
+        try:
+            import structure_forge
+            family = structure_forge.resolve_family(name, spec.get("category", ""))
+        except Exception:
+            family = "hut"
+        scored.append((weight, name, spec, family))
     scored.sort(key=lambda x: -x[0])
     picked = scored[:max_types]
-    return [{"name": n, "spec": s, "weight": w} for w, n, s in picked]
+    # Always include preferred tags that exist in catalog if room
+    have = {n for _, n, _, _ in picked}
+    for tag in preferred:
+        if tag in STRUCTURE_CATALOG and tag not in have and len(picked) < max_types:
+            spec = STRUCTURE_CATALOG[tag]
+            try:
+                import structure_forge
+                family = structure_forge.resolve_family(tag, spec.get("category", ""))
+            except Exception:
+                family = "hut"
+            picked.append((2.5, tag, spec, family))
+            have.add(tag)
+    return [{"name": n, "spec": s, "weight": w, "forge_family": f} for w, n, s, f in picked[:max_types]]
 
 
 def _load_mesh(path: str):
@@ -627,12 +648,26 @@ def spawn_structures(state: dict, pixels, width: int, height: int, params: dict 
         density_scale = float(params.get("structure_density", 1.0))
         max_total = int(params.get("max_structures", 48))
         placed_total = 0
+        forged = 0
+        try:
+            import structure_forge
+        except Exception:
+            structure_forge = None
+
+        preferred = parsed.get("structure_tags") or []
+        if not state.get("structure_plan"):
+            picks = resolve_structures(archetype, prompt, preferred_tags=preferred)
 
         for entry in picks:
             if placed_total >= max_total:
                 break
             name = entry["name"]
             spec = entry["spec"]
+            family = entry.get("forge_family")
+            if not family and structure_forge is not None:
+                family = structure_forge.resolve_family(name, spec.get("category", ""))
+            family = family or "hut"
+
             cmin, cmax = spec.get("count", (1, 2))
             target = int(round(rng.randint(cmin, cmax) * density_scale))
             target = max(0, min(target, max_total - placed_total))
@@ -652,13 +687,11 @@ def spawn_structures(state: dict, pixels, width: int, height: int, params: dict 
 
                 wx = origin_x + px * xy_scale
                 wy = origin_y + py * xy_scale
-                wz = h01 * z_scale * 0.01  # rough world Z; landscape scale varies
-                # Prefer a readable default elevation offset
                 wz = h01 * 1000.0
                 loc = unreal.Vector(float(wx), float(wy), float(wz)) if _HAS_UNREAL else None
                 yaw = rng.uniform(0, 360)
-
                 label = "WPE_{}_{}".format(name, placed_this)
+
                 if mesh is not None and _HAS_UNREAL:
                     scale = unreal.Vector(1, 1, 1)
                     actor = _spawn_static_mesh(
@@ -666,6 +699,14 @@ def spawn_structures(state: dict, pixels, width: int, height: int, params: dict 
                     if actor:
                         state["structure_actors"].append(actor)
                         summary["meshes"] += 1
+                        placed_this += 1
+                        placed_total += 1
+                elif structure_forge is not None and _HAS_UNREAL:
+                    actors = structure_forge.spawn_family(
+                        family, loc, yaw, label, state=state)
+                    if actors:
+                        forged += 1
+                        summary["proxies"] += len(actors)
                         placed_this += 1
                         placed_total += 1
                 else:
@@ -677,12 +718,18 @@ def spawn_structures(state: dict, pixels, width: int, height: int, params: dict 
                         placed_total += 1
 
             if placed_this:
-                summary["types"].append({"name": name, "count": placed_this, "proxy": mesh is None})
+                summary["types"].append({
+                    "name": name,
+                    "count": placed_this,
+                    "forge_family": family,
+                    "proxy": mesh is None,
+                })
 
         summary["placed"] = placed_total
+        summary["forged_instances"] = forged
         state["last_structure_summary"] = summary
         unreal.log(
-            "WorldPromptEngine: structures placed={} types={} (meshes={}, proxy_parts={})".format(
+            "WorldPromptEngine: structures placed={} types={} (meshes={}, forge/proxy_parts={})".format(
                 placed_total, len(summary["types"]), summary["meshes"], summary["proxies"]))
         return summary
     except Exception as e:
