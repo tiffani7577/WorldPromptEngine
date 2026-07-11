@@ -443,6 +443,10 @@ def generate_heightmap_task(state: dict, params: dict):
                 apply_params.setdefault("terrain_height_amp", 1800.0)
             apply_params["prompt"] = params.get("prompt") or ""
             apply_params["archetype"] = arch
+            # Demo / generate UX: keep ProceduralMesh fallback so empty voids never happen.
+            # Stage 1 validate sets allow_procedural_fallback=False explicitly.
+            apply_params.setdefault("allow_procedural_fallback", True)
+            apply_params.setdefault("prefer_landscape", True)
             # Airtight surface materials before mesh assign
             try:
                 import auto_surface_blend

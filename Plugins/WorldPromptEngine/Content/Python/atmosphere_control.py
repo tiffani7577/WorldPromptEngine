@@ -54,6 +54,7 @@ def ensure_lighting_stack(spawn_missing: bool = True) -> dict:
         import prompt_matrix
         for cls, label in (
             ("DirectionalLight", "WPE_Sun"),
+            ("SkyLight", "WPE_SkyLight"),
             ("ExponentialHeightFog", "WPE_HeightFog"),
             ("SkyAtmosphere", "WPE_SkyAtmosphere"),
             ("PostProcessVolume", "WPE_PostProcess"),

@@ -36,8 +36,12 @@ def _editor_subsys():
     return None
 
 
-def clear_wpe_terrains(state: dict) -> int:
-    """Destroy previous WPE_Terrain / WPE_Landscape actors."""
+def clear_wpe_terrains(state: dict, clear_landscapes: bool = False) -> int:
+    """
+    Destroy previous WPE_Terrain procedural actors.
+    Landscape actors are kept by default so native re-apply can reuse them
+    (demos / generate). Pass clear_landscapes=True to also remove WPE_Landscape.
+    """
     removed = 0
     if not _HAS_UNREAL:
         return 0
@@ -52,15 +56,19 @@ def clear_wpe_terrains(state: dict) -> int:
                     label = a.get_actor_label() or ""
                 except Exception:
                     pass
-                if label in (WPE_TERRAIN_LABEL, WPE_LANDSCAPE_LABEL) or label.startswith("WPE_Terrain"):
+                is_proc = label == WPE_TERRAIN_LABEL or label.startswith("WPE_Terrain")
+                is_ls = label == WPE_LANDSCAPE_LABEL
+                if is_proc or (clear_landscapes and is_ls):
                     subsys.destroy_actor(a)
                     removed += 1
             except Exception:
                 continue
         # also clear tracked refs
-        for key in ("wpe_terrain_actor", "wpe_landscape_actor"):
+        for key in ("wpe_terrain_actor",):
             state[key] = None
-        if state.get("current_landscapes"):
+        if clear_landscapes:
+            state["wpe_landscape_actor"] = None
+        if state.get("current_landscapes") and clear_landscapes:
             state["current_landscapes"] = [
                 x for x in state["current_landscapes"]
                 if x is not None
@@ -241,7 +249,14 @@ def _ensure_landscape_shell(pixels, width, height, params):
     """
     existing = _find_level_landscape(prefer_wpe_label=True)
     if existing is not None:
+        unreal.log("WorldPromptEngine: using existing Landscape '{}' for native apply.".format(
+            getattr(existing, "get_actor_label", lambda: "?")()))
         return existing
+
+    section, spc, cx, cy, sx, sy = _fit_landscape_dims(width, height)
+    unreal.log(
+        "WorldPromptEngine: no Landscape in level — creating compatible shell "
+        "{}x{} (section={}, components={}x{}).".format(sx, sy, section, cx, cy))
 
     # Create via PythonLandscapeLib (geometry shell); heights applied natively next.
     created = _try_python_landscape_lib(pixels, width, height, params)
@@ -249,7 +264,55 @@ def _ensure_landscape_shell(pixels, width, height, params):
         return created
 
     created = _try_landscape_import(pixels, width, height, params)
-    return created
+    if created is not None:
+        return created
+
+    unreal.log_error(
+        "WorldPromptEngine: SETUP REQUIRED — could not create a Landscape automatically.\n"
+        "  1) File → New Level → Empty Level\n"
+        "  2) Shift+2 Landscape Mode → Section 63, Sections 1×1, Components 4×4 (253×253)\n"
+        "  3) Click Create, then re-run Generate / Demo.\n"
+        "Or enable PythonLandscapeLib. ProceduralMesh fallback may still run if allowed.")
+    return None
+
+
+def _frame_terrain_actor(actor):
+    """Point the active viewport at the terrain so users never stare into a void."""
+    if actor is None:
+        return
+    try:
+        loc = actor.get_actor_location()
+        # Pull back along -Y / up Z relative to actor origin
+        cam = unreal.Vector(float(loc.x), float(loc.y) - 4500.0, float(loc.z) + 2200.0)
+        rot = unreal.Rotator(0.0, -25.0, 25.0)
+        if hasattr(unreal, "UnrealEditorSubsystem"):
+            unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).set_level_viewport_camera_info(cam, rot)
+        elif hasattr(unreal, "EditorLevelLibrary"):
+            unreal.EditorLevelLibrary.set_level_viewport_camera_info(cam, rot)
+        # Also try editor focus if available
+        try:
+            subsys = _editor_subsys()
+            if subsys is not None and hasattr(subsys, "set_selected_level_actors"):
+                arr = unreal.Array(unreal.Actor)
+                arr.append(actor)
+                subsys.set_selected_level_actors(arr)
+        except Exception:
+            pass
+    except Exception as e:
+        unreal.log_warning("frame terrain camera failed: {}".format(e))
+
+
+def _ensure_lit_viewport(state: dict):
+    """Empty levels are black in Lit mode without lights — always seed a basic stack."""
+    try:
+        import atmosphere_control
+        stack = atmosphere_control.ensure_lighting_stack(spawn_missing=True)
+        state["lighting_stack"] = stack
+        unreal.log("WorldPromptEngine: lit viewport stack -> {}".format(stack))
+        return stack
+    except Exception as e:
+        unreal.log_warning("ensure lit viewport failed: {}".format(e))
+        return {}
 
 
 def _try_native_height_apply(pixels, width, height, params, state) -> object:
@@ -470,8 +533,8 @@ def _build_procedural_heightfield(pixels, width, height, params, state) -> objec
 def apply_heightmap_to_level(state: dict, pixels, width: int, height: int, params: dict = None) -> dict:
     """
     Make the heightmap visible. Always clears prior WPE procedural terrains.
-    Prefer native EDI write; ProceduralMesh only if allow_procedural_fallback=True.
-    Returns summary with mode native_landscape|landscape_*|procedural|failed.
+    Prefer native EDI write (existing Stage 1 path). ProceduralMesh remains available
+    when allow_procedural_fallback=True (default True for demos / generate UX).
     """
     params = params or {}
     summary = {"ok": False, "mode": "none", "actor": None}
@@ -479,23 +542,34 @@ def apply_heightmap_to_level(state: dict, pixels, width: int, height: int, param
         summary["error"] = "no_unreal"
         return summary
     try:
+        # Never leave an unexplained black void — seed lights first.
+        _ensure_lit_viewport(state)
+
         # Keep existing level Landscapes; only wipe prior WPE procedural / labeled actors.
         clear_wpe_terrains(state)
         state["last_height_pixels"] = pixels
 
-        allow_fallback = bool(params.get("allow_procedural_fallback", False))
+        # Default True so demos/generate never leave an empty void; Stage 1 validate sets False.
+        allow_fallback = bool(params.get("allow_procedural_fallback", True))
         actor = None
+        setup_hint = None
 
         if params.get("prefer_landscape", True):
             actor = _try_native_height_apply(pixels, width, height, params, state)
             if actor is not None:
                 summary["mode"] = "native_landscape"
+            else:
+                setup_hint = (
+                    "No compatible Landscape for native apply. "
+                    "Create Landscape Mode 63 / 1×1 / 4×4 (253×253), or rely on ProceduralMesh fallback.")
 
         if actor is not None:
             _assign_material(actor)
             state["wpe_landscape_actor"] = actor
             state.setdefault("current_landscapes", []).append(actor)
         elif allow_fallback:
+            if setup_hint:
+                unreal.log_warning("WorldPromptEngine: {} — using ProceduralMesh fallback.".format(setup_hint))
             actor = _build_procedural_heightfield(pixels, width, height, params, state)
             if actor is not None:
                 summary["mode"] = "procedural_mesh"
@@ -503,9 +577,12 @@ def apply_heightmap_to_level(state: dict, pixels, width: int, height: int, param
             unreal.log_error(
                 "WorldPromptEngine: native Landscape apply failed and "
                 "allow_procedural_fallback is False — no ProceduralMesh fallback.")
+            if setup_hint:
+                unreal.log_error("WorldPromptEngine: {}".format(setup_hint))
 
         if actor is None:
             summary["error"] = "all_paths_failed"
+            summary["setup_hint"] = setup_hint
             unreal.log_error(
                 "WorldPromptEngine: could not apply heightmap to level — "
                 "native Landscape path failed"
@@ -514,18 +591,7 @@ def apply_heightmap_to_level(state: dict, pixels, width: int, height: int, param
 
         summary["ok"] = True
         summary["actor"] = actor
-        # Frame the camera on the new terrain
-        try:
-            if hasattr(unreal, "UnrealEditorSubsystem"):
-                unreal.get_editor_subsystem(unreal.UnrealEditorSubsystem).set_level_viewport_camera_info(
-                    unreal.Vector(0.0, -4500.0, 2200.0),
-                    unreal.Rotator(0.0, -25.0, 25.0))
-            elif hasattr(unreal, "EditorLevelLibrary"):
-                unreal.EditorLevelLibrary.set_level_viewport_camera_info(
-                    unreal.Vector(0.0, -4500.0, 2200.0),
-                    unreal.Rotator(0.0, -25.0, 25.0))
-        except Exception:
-            pass
+        _frame_terrain_actor(actor)
 
         unreal.log("WorldPromptEngine: terrain apply ok mode={}".format(summary["mode"]))
         state["last_terrain_apply"] = summary

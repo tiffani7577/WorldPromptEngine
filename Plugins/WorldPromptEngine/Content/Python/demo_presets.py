@@ -61,6 +61,9 @@ def run_preset(name: str) -> dict:
                 "carve_splines": True,
                 "spawn_demo_fill": True,
                 "apply_erosion": True,
+                # Demos must never leave an empty void if Landscape is missing.
+                "allow_procedural_fallback": True,
+                "prefer_landscape": True,
             },
         })
         unreal.log(
