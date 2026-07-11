@@ -1,59 +1,1065 @@
 {
-  "version": "1.0.0",
-  "comment": "WorldPromptEngine PCG spawn manifest. asset_path values point at project content; replace with your own meshes. density = instances per 100m^2 hint for PCG density nodes.",
+  "version": "1.1.0",
+  "comment": "WPE manifest: foliage/rocks + structure_forge families. Structure tags resolve to /Game/WPE/Structures/Generated/SM_WPE_<family> (Geometry Script when available, else primitive proxy silhouettes).",
   "assets": {
-    "pine":           { "asset_path": "/Game/WPE/Foliage/SM_Pine_01",          "density": 0.60, "scale_min": 0.85, "scale_max": 1.40, "align_to_slope": false, "max_slope_deg": 32 },
-    "oak":            { "asset_path": "/Game/WPE/Foliage/SM_Oak_01",           "density": 0.35, "scale_min": 0.90, "scale_max": 1.50, "align_to_slope": false, "max_slope_deg": 25 },
-    "palm":           { "asset_path": "/Game/WPE/Foliage/SM_Palm_01",          "density": 0.30, "scale_min": 0.80, "scale_max": 1.30, "align_to_slope": false, "max_slope_deg": 18 },
-    "spruce":         { "asset_path": "/Game/WPE/Foliage/SM_Spruce_01",        "density": 0.70, "scale_min": 0.85, "scale_max": 1.45, "align_to_slope": false, "max_slope_deg": 38 },
-    "redwood":        { "asset_path": "/Game/WPE/Foliage/SM_Redwood_01",       "density": 0.20, "scale_min": 1.20, "scale_max": 2.20, "align_to_slope": false, "max_slope_deg": 22 },
-    "acacia":         { "asset_path": "/Game/WPE/Foliage/SM_Acacia_01",        "density": 0.08, "scale_min": 0.90, "scale_max": 1.40, "align_to_slope": false, "max_slope_deg": 15 },
-    "kapok":          { "asset_path": "/Game/WPE/Foliage/SM_Kapok_01",         "density": 0.45, "scale_min": 1.00, "scale_max": 1.80, "align_to_slope": false, "max_slope_deg": 28 },
-    "juniper":        { "asset_path": "/Game/WPE/Foliage/SM_Juniper_01",       "density": 0.15, "scale_min": 0.70, "scale_max": 1.20, "align_to_slope": true,  "max_slope_deg": 40 },
-    "cypress":        { "asset_path": "/Game/WPE/Foliage/SM_Cypress_01",       "density": 0.40, "scale_min": 0.90, "scale_max": 1.60, "align_to_slope": false, "max_slope_deg": 12 },
-    "bamboo":         { "asset_path": "/Game/WPE/Foliage/SM_Bamboo_Clump_01",  "density": 0.55, "scale_min": 0.80, "scale_max": 1.30, "align_to_slope": false, "max_slope_deg": 30 },
-    "dead_tree":      { "asset_path": "/Game/WPE/Foliage/SM_DeadTree_01",      "density": 0.10, "scale_min": 0.75, "scale_max": 1.35, "align_to_slope": true,  "max_slope_deg": 35 },
-    "cactus":         { "asset_path": "/Game/WPE/Foliage/SM_Cactus_01",        "density": 0.12, "scale_min": 0.60, "scale_max": 1.50, "align_to_slope": false, "max_slope_deg": 20 },
-    "fern_giant":     { "asset_path": "/Game/WPE/Foliage/SM_FernGiant_01",     "density": 1.20, "scale_min": 0.70, "scale_max": 1.30, "align_to_slope": true,  "max_slope_deg": 40 },
-    "fern_tropical":  { "asset_path": "/Game/WPE/Foliage/SM_FernTropical_01",  "density": 1.00, "scale_min": 0.70, "scale_max": 1.20, "align_to_slope": true,  "max_slope_deg": 35 },
-    "grass_tall":     { "asset_path": "/Game/WPE/Foliage/SM_GrassTall_01",     "density": 4.00, "scale_min": 0.80, "scale_max": 1.20, "align_to_slope": true,  "max_slope_deg": 30 },
-    "grass_dry":      { "asset_path": "/Game/WPE/Foliage/SM_GrassDry_01",      "density": 3.50, "scale_min": 0.80, "scale_max": 1.20, "align_to_slope": true,  "max_slope_deg": 28 },
-    "grass_wet":      { "asset_path": "/Game/WPE/Foliage/SM_GrassWet_01",      "density": 3.00, "scale_min": 0.80, "scale_max": 1.15, "align_to_slope": true,  "max_slope_deg": 20 },
-    "wildflower":     { "asset_path": "/Game/WPE/Foliage/SM_Wildflower_01",    "density": 1.50, "scale_min": 0.70, "scale_max": 1.10, "align_to_slope": true,  "max_slope_deg": 25 },
-    "heather":        { "asset_path": "/Game/WPE/Foliage/SM_Heather_01",       "density": 2.00, "scale_min": 0.75, "scale_max": 1.15, "align_to_slope": true,  "max_slope_deg": 32 },
-    "gorse":          { "asset_path": "/Game/WPE/Foliage/SM_Gorse_01",         "density": 0.80, "scale_min": 0.70, "scale_max": 1.25, "align_to_slope": true,  "max_slope_deg": 34 },
-    "sagebrush":      { "asset_path": "/Game/WPE/Foliage/SM_Sagebrush_01",     "density": 0.60, "scale_min": 0.65, "scale_max": 1.20, "align_to_slope": true,  "max_slope_deg": 30 },
-    "shrub_arctic":   { "asset_path": "/Game/WPE/Foliage/SM_ShrubArctic_01",   "density": 0.50, "scale_min": 0.60, "scale_max": 1.00, "align_to_slope": true,  "max_slope_deg": 25 },
-    "shrub_hardy":    { "asset_path": "/Game/WPE/Foliage/SM_ShrubHardy_01",    "density": 0.55, "scale_min": 0.65, "scale_max": 1.10, "align_to_slope": true,  "max_slope_deg": 30 },
-    "dead_shrub":     { "asset_path": "/Game/WPE/Foliage/SM_DeadShrub_01",     "density": 0.25, "scale_min": 0.60, "scale_max": 1.10, "align_to_slope": true,  "max_slope_deg": 25 },
-    "undergrowth":    { "asset_path": "/Game/WPE/Foliage/SM_Undergrowth_01",   "density": 2.50, "scale_min": 0.75, "scale_max": 1.25, "align_to_slope": true,  "max_slope_deg": 38 },
-    "reed_cluster":   { "asset_path": "/Game/WPE/Foliage/SM_ReedCluster_01",   "density": 1.80, "scale_min": 0.80, "scale_max": 1.30, "align_to_slope": false, "max_slope_deg": 8 },
-    "lilypad":        { "asset_path": "/Game/WPE/Foliage/SM_Lilypad_01",       "density": 0.90, "scale_min": 0.70, "scale_max": 1.20, "align_to_slope": false, "max_slope_deg": 3 },
-    "seagrass":       { "asset_path": "/Game/WPE/Foliage/SM_Seagrass_01",      "density": 1.60, "scale_min": 0.75, "scale_max": 1.15, "align_to_slope": true,  "max_slope_deg": 22 },
-    "vine_cluster":   { "asset_path": "/Game/WPE/Foliage/SM_VineCluster_01",   "density": 0.70, "scale_min": 0.80, "scale_max": 1.40, "align_to_slope": true,  "max_slope_deg": 60 },
-    "moss_hang":      { "asset_path": "/Game/WPE/Foliage/SM_MossHang_01",      "density": 0.60, "scale_min": 0.70, "scale_max": 1.30, "align_to_slope": true,  "max_slope_deg": 55 },
-    "lichen_rock":    { "asset_path": "/Game/WPE/Rocks/SM_LichenRock_01",      "density": 0.40, "scale_min": 0.60, "scale_max": 1.40, "align_to_slope": true,  "max_slope_deg": 45 },
-    "rock_large":     { "asset_path": "/Game/WPE/Rocks/SM_RockLarge_01",       "density": 0.08, "scale_min": 0.90, "scale_max": 2.50, "align_to_slope": true,  "max_slope_deg": 50 },
-    "rock_small":     { "asset_path": "/Game/WPE/Rocks/SM_RockSmall_01",       "density": 0.50, "scale_min": 0.40, "scale_max": 1.20, "align_to_slope": true,  "max_slope_deg": 45 },
-    "rock_volcanic":  { "asset_path": "/Game/WPE/Rocks/SM_RockVolcanic_01",    "density": 0.35, "scale_min": 0.60, "scale_max": 1.80, "align_to_slope": true,  "max_slope_deg": 55 },
-    "rock_coastal":   { "asset_path": "/Game/WPE/Rocks/SM_RockCoastal_01",     "density": 0.30, "scale_min": 0.70, "scale_max": 2.00, "align_to_slope": true,  "max_slope_deg": 50 },
-    "rock_sandstone": { "asset_path": "/Game/WPE/Rocks/SM_RockSandstone_01",   "density": 0.25, "scale_min": 0.80, "scale_max": 2.20, "align_to_slope": true,  "max_slope_deg": 55 },
-    "rock_granite":   { "asset_path": "/Game/WPE/Rocks/SM_RockGranite_01",     "density": 0.28, "scale_min": 0.80, "scale_max": 2.10, "align_to_slope": true,  "max_slope_deg": 55 },
-    "rock_glacial":   { "asset_path": "/Game/WPE/Rocks/SM_RockGlacial_01",     "density": 0.30, "scale_min": 0.70, "scale_max": 1.90, "align_to_slope": true,  "max_slope_deg": 48 },
-    "rock_limestone": { "asset_path": "/Game/WPE/Rocks/SM_RockLimestone_01",   "density": 0.26, "scale_min": 0.75, "scale_max": 2.00, "align_to_slope": true,  "max_slope_deg": 60 },
-    "rock_scorched":  { "asset_path": "/Game/WPE/Rocks/SM_RockScorched_01",    "density": 0.32, "scale_min": 0.60, "scale_max": 1.70, "align_to_slope": true,  "max_slope_deg": 50 },
-    "rock_moss":      { "asset_path": "/Game/WPE/Rocks/SM_RockMoss_01",        "density": 0.35, "scale_min": 0.60, "scale_max": 1.50, "align_to_slope": true,  "max_slope_deg": 45 },
-    "rock_beach":     { "asset_path": "/Game/WPE/Rocks/SM_RockBeach_01",       "density": 0.30, "scale_min": 0.50, "scale_max": 1.40, "align_to_slope": false, "max_slope_deg": 15 },
-    "snow_patch":     { "asset_path": "/Game/WPE/Decals/SM_SnowPatch_01",      "density": 0.45, "scale_min": 0.80, "scale_max": 1.60, "align_to_slope": true,  "max_slope_deg": 35 },
-    "snow_drift":     { "asset_path": "/Game/WPE/Decals/SM_SnowDrift_01",      "density": 0.40, "scale_min": 0.80, "scale_max": 1.80, "align_to_slope": true,  "max_slope_deg": 25 },
-    "ice_shard":      { "asset_path": "/Game/WPE/Rocks/SM_IceShard_01",        "density": 0.22, "scale_min": 0.60, "scale_max": 1.90, "align_to_slope": true,  "max_slope_deg": 40 },
-    "salt_crust":     { "asset_path": "/Game/WPE/Decals/SM_SaltCrust_01",      "density": 0.90, "scale_min": 0.80, "scale_max": 1.50, "align_to_slope": false, "max_slope_deg": 5 },
-    "ember_vent":     { "asset_path": "/Game/WPE/FX/BP_EmberVent",             "density": 0.05, "scale_min": 0.90, "scale_max": 1.30, "align_to_slope": false, "max_slope_deg": 20 },
-    "termite_mound":  { "asset_path": "/Game/WPE/Props/SM_TermiteMound_01",    "density": 0.04, "scale_min": 0.70, "scale_max": 1.40, "align_to_slope": false, "max_slope_deg": 12 },
-    "driftwood":      { "asset_path": "/Game/WPE/Props/SM_Driftwood_01",       "density": 0.15, "scale_min": 0.70, "scale_max": 1.50, "align_to_slope": true,  "max_slope_deg": 18 },
-    "log_fallen":     { "asset_path": "/Game/WPE/Props/SM_LogFallen_01",       "density": 0.12, "scale_min": 0.80, "scale_max": 1.60, "align_to_slope": true,  "max_slope_deg": 28 },
-    "debris":         { "asset_path": "/Game/WPE/Props/SM_Debris_01",          "density": 0.30, "scale_min": 0.50, "scale_max": 1.40, "align_to_slope": true,  "max_slope_deg": 40 },
-    "stone_wall":     { "asset_path": "/Game/WPE/Props/SM_StoneWall_01",       "density": 0.06, "scale_min": 0.90, "scale_max": 1.20, "align_to_slope": true,  "max_slope_deg": 30 },
-    "waterfall_marker": { "asset_path": "/Game/WPE/FX/BP_WaterfallMarker",     "density": 0.02, "scale_min": 1.00, "scale_max": 1.00, "align_to_slope": true,  "max_slope_deg": 80 }
+    "pine": {
+      "asset_path": "/Game/WPE/Foliage/SM_Pine_01",
+      "density": 0.6,
+      "scale_min": 0.85,
+      "scale_max": 1.4,
+      "align_to_slope": false,
+      "max_slope_deg": 32
+    },
+    "oak": {
+      "asset_path": "/Game/WPE/Foliage/SM_Oak_01",
+      "density": 0.35,
+      "scale_min": 0.9,
+      "scale_max": 1.5,
+      "align_to_slope": false,
+      "max_slope_deg": 25
+    },
+    "palm": {
+      "asset_path": "/Game/WPE/Foliage/SM_Palm_01",
+      "density": 0.3,
+      "scale_min": 0.8,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 18
+    },
+    "spruce": {
+      "asset_path": "/Game/WPE/Foliage/SM_Spruce_01",
+      "density": 0.7,
+      "scale_min": 0.85,
+      "scale_max": 1.45,
+      "align_to_slope": false,
+      "max_slope_deg": 38
+    },
+    "redwood": {
+      "asset_path": "/Game/WPE/Foliage/SM_Redwood_01",
+      "density": 0.2,
+      "scale_min": 1.2,
+      "scale_max": 2.2,
+      "align_to_slope": false,
+      "max_slope_deg": 22
+    },
+    "acacia": {
+      "asset_path": "/Game/WPE/Foliage/SM_Acacia_01",
+      "density": 0.08,
+      "scale_min": 0.9,
+      "scale_max": 1.4,
+      "align_to_slope": false,
+      "max_slope_deg": 15
+    },
+    "kapok": {
+      "asset_path": "/Game/WPE/Foliage/SM_Kapok_01",
+      "density": 0.45,
+      "scale_min": 1.0,
+      "scale_max": 1.8,
+      "align_to_slope": false,
+      "max_slope_deg": 28
+    },
+    "juniper": {
+      "asset_path": "/Game/WPE/Foliage/SM_Juniper_01",
+      "density": 0.15,
+      "scale_min": 0.7,
+      "scale_max": 1.2,
+      "align_to_slope": true,
+      "max_slope_deg": 40
+    },
+    "cypress": {
+      "asset_path": "/Game/WPE/Foliage/SM_Cypress_01",
+      "density": 0.4,
+      "scale_min": 0.9,
+      "scale_max": 1.6,
+      "align_to_slope": false,
+      "max_slope_deg": 12
+    },
+    "bamboo": {
+      "asset_path": "/Game/WPE/Foliage/SM_Bamboo_Clump_01",
+      "density": 0.55,
+      "scale_min": 0.8,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 30
+    },
+    "dead_tree": {
+      "asset_path": "/Game/WPE/Foliage/SM_DeadTree_01",
+      "density": 0.1,
+      "scale_min": 0.75,
+      "scale_max": 1.35,
+      "align_to_slope": true,
+      "max_slope_deg": 35
+    },
+    "cactus": {
+      "asset_path": "/Game/WPE/Foliage/SM_Cactus_01",
+      "density": 0.12,
+      "scale_min": 0.6,
+      "scale_max": 1.5,
+      "align_to_slope": false,
+      "max_slope_deg": 20
+    },
+    "fern_giant": {
+      "asset_path": "/Game/WPE/Foliage/SM_FernGiant_01",
+      "density": 1.2,
+      "scale_min": 0.7,
+      "scale_max": 1.3,
+      "align_to_slope": true,
+      "max_slope_deg": 40
+    },
+    "fern_tropical": {
+      "asset_path": "/Game/WPE/Foliage/SM_FernTropical_01",
+      "density": 1.0,
+      "scale_min": 0.7,
+      "scale_max": 1.2,
+      "align_to_slope": true,
+      "max_slope_deg": 35
+    },
+    "grass_tall": {
+      "asset_path": "/Game/WPE/Foliage/SM_GrassTall_01",
+      "density": 4.0,
+      "scale_min": 0.8,
+      "scale_max": 1.2,
+      "align_to_slope": true,
+      "max_slope_deg": 30
+    },
+    "grass_dry": {
+      "asset_path": "/Game/WPE/Foliage/SM_GrassDry_01",
+      "density": 3.5,
+      "scale_min": 0.8,
+      "scale_max": 1.2,
+      "align_to_slope": true,
+      "max_slope_deg": 28
+    },
+    "grass_wet": {
+      "asset_path": "/Game/WPE/Foliage/SM_GrassWet_01",
+      "density": 3.0,
+      "scale_min": 0.8,
+      "scale_max": 1.15,
+      "align_to_slope": true,
+      "max_slope_deg": 20
+    },
+    "wildflower": {
+      "asset_path": "/Game/WPE/Foliage/SM_Wildflower_01",
+      "density": 1.5,
+      "scale_min": 0.7,
+      "scale_max": 1.1,
+      "align_to_slope": true,
+      "max_slope_deg": 25
+    },
+    "heather": {
+      "asset_path": "/Game/WPE/Foliage/SM_Heather_01",
+      "density": 2.0,
+      "scale_min": 0.75,
+      "scale_max": 1.15,
+      "align_to_slope": true,
+      "max_slope_deg": 32
+    },
+    "gorse": {
+      "asset_path": "/Game/WPE/Foliage/SM_Gorse_01",
+      "density": 0.8,
+      "scale_min": 0.7,
+      "scale_max": 1.25,
+      "align_to_slope": true,
+      "max_slope_deg": 34
+    },
+    "sagebrush": {
+      "asset_path": "/Game/WPE/Foliage/SM_Sagebrush_01",
+      "density": 0.6,
+      "scale_min": 0.65,
+      "scale_max": 1.2,
+      "align_to_slope": true,
+      "max_slope_deg": 30
+    },
+    "shrub_arctic": {
+      "asset_path": "/Game/WPE/Foliage/SM_ShrubArctic_01",
+      "density": 0.5,
+      "scale_min": 0.6,
+      "scale_max": 1.0,
+      "align_to_slope": true,
+      "max_slope_deg": 25
+    },
+    "shrub_hardy": {
+      "asset_path": "/Game/WPE/Foliage/SM_ShrubHardy_01",
+      "density": 0.55,
+      "scale_min": 0.65,
+      "scale_max": 1.1,
+      "align_to_slope": true,
+      "max_slope_deg": 30
+    },
+    "dead_shrub": {
+      "asset_path": "/Game/WPE/Foliage/SM_DeadShrub_01",
+      "density": 0.25,
+      "scale_min": 0.6,
+      "scale_max": 1.1,
+      "align_to_slope": true,
+      "max_slope_deg": 25
+    },
+    "undergrowth": {
+      "asset_path": "/Game/WPE/Foliage/SM_Undergrowth_01",
+      "density": 2.5,
+      "scale_min": 0.75,
+      "scale_max": 1.25,
+      "align_to_slope": true,
+      "max_slope_deg": 38
+    },
+    "reed_cluster": {
+      "asset_path": "/Game/WPE/Foliage/SM_ReedCluster_01",
+      "density": 1.8,
+      "scale_min": 0.8,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 8
+    },
+    "lilypad": {
+      "asset_path": "/Game/WPE/Foliage/SM_Lilypad_01",
+      "density": 0.9,
+      "scale_min": 0.7,
+      "scale_max": 1.2,
+      "align_to_slope": false,
+      "max_slope_deg": 3
+    },
+    "seagrass": {
+      "asset_path": "/Game/WPE/Foliage/SM_Seagrass_01",
+      "density": 1.6,
+      "scale_min": 0.75,
+      "scale_max": 1.15,
+      "align_to_slope": true,
+      "max_slope_deg": 22
+    },
+    "vine_cluster": {
+      "asset_path": "/Game/WPE/Foliage/SM_VineCluster_01",
+      "density": 0.7,
+      "scale_min": 0.8,
+      "scale_max": 1.4,
+      "align_to_slope": true,
+      "max_slope_deg": 60
+    },
+    "moss_hang": {
+      "asset_path": "/Game/WPE/Foliage/SM_MossHang_01",
+      "density": 0.6,
+      "scale_min": 0.7,
+      "scale_max": 1.3,
+      "align_to_slope": true,
+      "max_slope_deg": 55
+    },
+    "lichen_rock": {
+      "asset_path": "/Game/WPE/Rocks/SM_LichenRock_01",
+      "density": 0.4,
+      "scale_min": 0.6,
+      "scale_max": 1.4,
+      "align_to_slope": true,
+      "max_slope_deg": 45
+    },
+    "rock_large": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockLarge_01",
+      "density": 0.08,
+      "scale_min": 0.9,
+      "scale_max": 2.5,
+      "align_to_slope": true,
+      "max_slope_deg": 50
+    },
+    "rock_small": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockSmall_01",
+      "density": 0.5,
+      "scale_min": 0.4,
+      "scale_max": 1.2,
+      "align_to_slope": true,
+      "max_slope_deg": 45
+    },
+    "rock_volcanic": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockVolcanic_01",
+      "density": 0.35,
+      "scale_min": 0.6,
+      "scale_max": 1.8,
+      "align_to_slope": true,
+      "max_slope_deg": 55
+    },
+    "rock_coastal": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockCoastal_01",
+      "density": 0.3,
+      "scale_min": 0.7,
+      "scale_max": 2.0,
+      "align_to_slope": true,
+      "max_slope_deg": 50
+    },
+    "rock_sandstone": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockSandstone_01",
+      "density": 0.25,
+      "scale_min": 0.8,
+      "scale_max": 2.2,
+      "align_to_slope": true,
+      "max_slope_deg": 55
+    },
+    "rock_granite": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockGranite_01",
+      "density": 0.28,
+      "scale_min": 0.8,
+      "scale_max": 2.1,
+      "align_to_slope": true,
+      "max_slope_deg": 55
+    },
+    "rock_glacial": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockGlacial_01",
+      "density": 0.3,
+      "scale_min": 0.7,
+      "scale_max": 1.9,
+      "align_to_slope": true,
+      "max_slope_deg": 48
+    },
+    "rock_limestone": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockLimestone_01",
+      "density": 0.26,
+      "scale_min": 0.75,
+      "scale_max": 2.0,
+      "align_to_slope": true,
+      "max_slope_deg": 60
+    },
+    "rock_scorched": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockScorched_01",
+      "density": 0.32,
+      "scale_min": 0.6,
+      "scale_max": 1.7,
+      "align_to_slope": true,
+      "max_slope_deg": 50
+    },
+    "rock_moss": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockMoss_01",
+      "density": 0.35,
+      "scale_min": 0.6,
+      "scale_max": 1.5,
+      "align_to_slope": true,
+      "max_slope_deg": 45
+    },
+    "rock_beach": {
+      "asset_path": "/Game/WPE/Rocks/SM_RockBeach_01",
+      "density": 0.3,
+      "scale_min": 0.5,
+      "scale_max": 1.4,
+      "align_to_slope": false,
+      "max_slope_deg": 15
+    },
+    "snow_patch": {
+      "asset_path": "/Game/WPE/Decals/SM_SnowPatch_01",
+      "density": 0.45,
+      "scale_min": 0.8,
+      "scale_max": 1.6,
+      "align_to_slope": true,
+      "max_slope_deg": 35
+    },
+    "snow_drift": {
+      "asset_path": "/Game/WPE/Decals/SM_SnowDrift_01",
+      "density": 0.4,
+      "scale_min": 0.8,
+      "scale_max": 1.8,
+      "align_to_slope": true,
+      "max_slope_deg": 25
+    },
+    "ice_shard": {
+      "asset_path": "/Game/WPE/Rocks/SM_IceShard_01",
+      "density": 0.22,
+      "scale_min": 0.6,
+      "scale_max": 1.9,
+      "align_to_slope": true,
+      "max_slope_deg": 40
+    },
+    "salt_crust": {
+      "asset_path": "/Game/WPE/Decals/SM_SaltCrust_01",
+      "density": 0.9,
+      "scale_min": 0.8,
+      "scale_max": 1.5,
+      "align_to_slope": false,
+      "max_slope_deg": 5
+    },
+    "ember_vent": {
+      "asset_path": "/Game/WPE/FX/BP_EmberVent",
+      "density": 0.05,
+      "scale_min": 0.9,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 20
+    },
+    "termite_mound": {
+      "asset_path": "/Game/WPE/Props/SM_TermiteMound_01",
+      "density": 0.04,
+      "scale_min": 0.7,
+      "scale_max": 1.4,
+      "align_to_slope": false,
+      "max_slope_deg": 12
+    },
+    "driftwood": {
+      "asset_path": "/Game/WPE/Props/SM_Driftwood_01",
+      "density": 0.15,
+      "scale_min": 0.7,
+      "scale_max": 1.5,
+      "align_to_slope": true,
+      "max_slope_deg": 18
+    },
+    "log_fallen": {
+      "asset_path": "/Game/WPE/Props/SM_LogFallen_01",
+      "density": 0.12,
+      "scale_min": 0.8,
+      "scale_max": 1.6,
+      "align_to_slope": true,
+      "max_slope_deg": 28
+    },
+    "debris": {
+      "asset_path": "/Game/WPE/Props/SM_Debris_01",
+      "density": 0.3,
+      "scale_min": 0.5,
+      "scale_max": 1.4,
+      "align_to_slope": true,
+      "max_slope_deg": 40
+    },
+    "stone_wall": {
+      "asset_path": "/Game/WPE/Props/SM_StoneWall_01",
+      "density": 0.06,
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "align_to_slope": true,
+      "max_slope_deg": 30
+    },
+    "waterfall_marker": {
+      "asset_path": "/Game/WPE/FX/BP_WaterfallMarker",
+      "density": 0.02,
+      "scale_min": 1.0,
+      "scale_max": 1.0,
+      "align_to_slope": true,
+      "max_slope_deg": 80
+    },
+    "arch": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_arch",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.25,
+      "align_to_slope": false,
+      "max_slope_deg": 25,
+      "forge_family": "arch",
+      "kind": "structure"
+    },
+    "crystal": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_crystal",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.25,
+      "align_to_slope": false,
+      "max_slope_deg": 25,
+      "forge_family": "crystal",
+      "kind": "structure",
+      "alias_of": "crystal"
+    },
+    "hut": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_hut",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.25,
+      "align_to_slope": false,
+      "max_slope_deg": 25,
+      "forge_family": "hut",
+      "kind": "structure",
+      "alias_of": "hut"
+    },
+    "keep": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_keep",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.25,
+      "align_to_slope": false,
+      "max_slope_deg": 25,
+      "forge_family": "keep",
+      "kind": "structure"
+    },
+    "megalith": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_megalith",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.25,
+      "align_to_slope": false,
+      "max_slope_deg": 25,
+      "forge_family": "megalith",
+      "kind": "structure"
+    },
+    "ruin": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_ruin",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.25,
+      "align_to_slope": false,
+      "max_slope_deg": 25,
+      "forge_family": "ruin",
+      "kind": "structure"
+    },
+    "stone_keep": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_keep",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 18.0,
+      "forge_family": "keep",
+      "kind": "structure",
+      "category": "architecture"
+    },
+    "castle": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_keep",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.25,
+      "align_to_slope": false,
+      "max_slope_deg": 25,
+      "forge_family": "keep",
+      "kind": "structure",
+      "alias_of": "keep"
+    },
+    "watchtower": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_keep",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 22.0,
+      "forge_family": "keep",
+      "kind": "structure",
+      "category": "architecture"
+    },
+    "ruined_tower": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_ruin",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 28.0,
+      "forge_family": "ruin",
+      "kind": "structure",
+      "category": "ruins"
+    },
+    "ruins": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_ruin",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.25,
+      "align_to_slope": false,
+      "max_slope_deg": 25,
+      "forge_family": "ruin",
+      "kind": "structure",
+      "alias_of": "ruin"
+    },
+    "crystal_spire": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_crystal",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 40.0,
+      "forge_family": "crystal",
+      "kind": "structure",
+      "category": "geological"
+    },
+    "stone_circle": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_megalith",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 12.0,
+      "forge_family": "megalith",
+      "kind": "structure",
+      "category": "megalith"
+    },
+    "obelisk": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_megalith",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 20.0,
+      "forge_family": "megalith",
+      "kind": "structure",
+      "category": "megalith"
+    },
+    "village_hut": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_hut",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 16.0,
+      "forge_family": "hut",
+      "kind": "structure",
+      "category": "settlement"
+    },
+    "arch_rock": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_arch",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 30.0,
+      "forge_family": "arch",
+      "kind": "structure",
+      "category": "geological"
+    },
+    "bridge_arch": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_arch",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 35.0,
+      "forge_family": "arch",
+      "kind": "structure",
+      "category": "architecture"
+    },
+    "longhouse": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_hut",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 14.0,
+      "forge_family": "hut",
+      "kind": "structure",
+      "category": "settlement"
+    },
+    "temple_ruin": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_ruin",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 18.0,
+      "forge_family": "ruin",
+      "kind": "structure",
+      "category": "ruins"
+    },
+    "dock_pier": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_hut",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 10.0,
+      "forge_family": "hut",
+      "kind": "structure",
+      "category": "settlement"
+    },
+    "floating_boulder": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_crystal",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 90.0,
+      "forge_family": "crystal",
+      "kind": "structure",
+      "category": "mystical"
+    },
+    "mesa_butte": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_arch",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 25.0,
+      "forge_family": "arch",
+      "kind": "structure",
+      "category": "geological"
+    },
+    "lava_spine": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_crystal",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 45.0,
+      "forge_family": "crystal",
+      "kind": "structure",
+      "category": "geological"
+    },
+    "ice_monolith": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_crystal",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 30.0,
+      "forge_family": "crystal",
+      "kind": "structure",
+      "category": "geological"
+    },
+    "mangrove_root": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_ruin",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 12.0,
+      "forge_family": "ruin",
+      "kind": "structure",
+      "category": "natural"
+    },
+    "giant_bone": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_ruin",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 25.0,
+      "forge_family": "ruin",
+      "kind": "structure",
+      "category": "mystical"
+    },
+    "shipwreck": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_ruin",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 18.0,
+      "forge_family": "ruin",
+      "kind": "structure",
+      "category": "ruins"
+    },
+    "windmill": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_keep",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 14.0,
+      "forge_family": "keep",
+      "kind": "structure",
+      "category": "settlement"
+    },
+    "lighthouse": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_keep",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 20.0,
+      "forge_family": "keep",
+      "kind": "structure",
+      "category": "architecture"
+    },
+    "pagoda": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_keep",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 16.0,
+      "forge_family": "keep",
+      "kind": "structure",
+      "category": "architecture"
+    },
+    "pyramid": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_arch",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 14.0,
+      "forge_family": "arch",
+      "kind": "structure",
+      "category": "architecture"
+    },
+    "camp_tents": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_hut",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 14.0,
+      "forge_family": "hut",
+      "kind": "structure",
+      "category": "settlement"
+    },
+    "oil_derrick": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_keep",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 12.0,
+      "forge_family": "keep",
+      "kind": "structure",
+      "category": "industrial"
+    },
+    "radar_dish": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_keep",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 10.0,
+      "forge_family": "keep",
+      "kind": "structure",
+      "category": "industrial"
+    },
+    "portal_ring": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_crystal",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 20.0,
+      "forge_family": "crystal",
+      "kind": "structure",
+      "category": "mystical"
+    },
+    "totem": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_megalith",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 20.0,
+      "forge_family": "megalith",
+      "kind": "structure",
+      "category": "mystical"
+    },
+    "waterfall_rocks": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_arch",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 55.0,
+      "forge_family": "arch",
+      "kind": "structure",
+      "category": "natural"
+    },
+    "coral_stack": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_crystal",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 20.0,
+      "forge_family": "crystal",
+      "kind": "structure",
+      "category": "natural"
+    },
+    "barn": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_hut",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 12.0,
+      "forge_family": "hut",
+      "kind": "structure",
+      "category": "settlement"
+    },
+    "mine_entrance": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_ruin",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 35.0,
+      "forge_family": "ruin",
+      "kind": "structure",
+      "category": "architecture"
+    },
+    "graveyard": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_ruin",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 14.0,
+      "forge_family": "ruin",
+      "kind": "structure",
+      "category": "ruins"
+    },
+    "wizard_tower": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_keep",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 22.0,
+      "forge_family": "keep",
+      "kind": "structure",
+      "category": "mystical"
+    },
+    "dragon_perch": {
+      "asset_path": "/Game/WPE/Structures/Generated/SM_WPE_megalith",
+      "density": 0.02,
+      "scale_min": 0.85,
+      "scale_max": 1.3,
+      "align_to_slope": false,
+      "max_slope_deg": 40.0,
+      "forge_family": "megalith",
+      "kind": "structure",
+      "category": "mystical"
+    }
+  },
+  "structure_families": [
+    "arch",
+    "crystal",
+    "hut",
+    "keep",
+    "megalith",
+    "ruin"
+  ],
+  "archetype_structure_tags": {
+    "alpine_peaks": [
+      "stone_keep",
+      "crystal_spire",
+      "ice_monolith",
+      "ruined_tower"
+    ],
+    "rolling_hills": [
+      "village_hut",
+      "barn",
+      "windmill",
+      "stone_circle"
+    ],
+    "desert_dunes": [
+      "obelisk",
+      "pyramid",
+      "camp_tents",
+      "giant_bone"
+    ],
+    "volcanic_badlands": [
+      "lava_spine",
+      "dragon_perch",
+      "portal_ring",
+      "ruined_tower"
+    ],
+    "coastal_cliffs": [
+      "lighthouse",
+      "shipwreck",
+      "dock_pier",
+      "arch_rock"
+    ],
+    "tropical_islands": [
+      "village_hut",
+      "temple_ruin",
+      "dock_pier",
+      "coral_stack"
+    ],
+    "tundra_flats": [
+      "longhouse",
+      "obelisk",
+      "camp_tents",
+      "ice_monolith"
+    ],
+    "dense_rainforest": [
+      "temple_ruin",
+      "totem",
+      "village_hut",
+      "mangrove_root"
+    ],
+    "canyon_mesas": [
+      "mesa_butte",
+      "arch_rock",
+      "mine_entrance",
+      "watchtower"
+    ],
+    "swamp_wetlands": [
+      "mangrove_root",
+      "dock_pier",
+      "ruined_tower",
+      "totem"
+    ],
+    "glacier_fields": [
+      "ice_monolith",
+      "longhouse",
+      "crystal_spire",
+      "stone_keep"
+    ],
+    "highland_moors": [
+      "stone_circle",
+      "watchtower",
+      "graveyard",
+      "ruined_tower"
+    ],
+    "savanna_plains": [
+      "village_hut",
+      "camp_tents",
+      "obelisk",
+      "barn"
+    ],
+    "karst_towers": [
+      "pagoda",
+      "crystal_spire",
+      "temple_ruin",
+      "bridge_arch"
+    ],
+    "fjord_valleys": [
+      "longhouse",
+      "lighthouse",
+      "bridge_arch",
+      "waterfall_rocks"
+    ],
+    "salt_flats": [
+      "obelisk",
+      "radar_dish",
+      "oil_derrick",
+      "camp_tents"
+    ],
+    "redwood_forest": [
+      "totem",
+      "village_hut",
+      "ruined_tower",
+      "waterfall_rocks"
+    ],
+    "steppe_ridges": [
+      "camp_tents",
+      "watchtower",
+      "obelisk",
+      "windmill"
+    ],
+    "crater_wastes": [
+      "radar_dish",
+      "portal_ring",
+      "ruined_tower",
+      "giant_bone"
+    ],
+    "terraced_valleys": [
+      "pagoda",
+      "village_hut",
+      "barn",
+      "bridge_arch"
+    ],
+    "archipelago": [
+      "dock_pier",
+      "lighthouse",
+      "village_hut",
+      "shipwreck"
+    ],
+    "bamboo_highlands": [
+      "pagoda",
+      "temple_ruin",
+      "totem",
+      "bridge_arch"
+    ],
+    "enchanted_forest": [
+      "wizard_tower",
+      "stone_circle",
+      "crystal_spire",
+      "totem"
+    ],
+    "obsidian_wastes": [
+      "lava_spine",
+      "portal_ring",
+      "obelisk",
+      "ruined_tower"
+    ],
+    "coral_shallows": [
+      "coral_stack",
+      "dock_pier",
+      "temple_ruin",
+      "shipwreck"
+    ],
+    "floating_isles": [
+      "floating_boulder",
+      "crystal_spire",
+      "portal_ring",
+      "wizard_tower"
+    ]
   }
 }

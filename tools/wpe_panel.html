@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>WorldPromptEngine</title>
+  <style>
+    :root {
+      --bg: #12151a;
+      --panel: #1b2129;
+      --line: #2c3540;
+      --text: #e8eef5;
+      --muted: #9aa7b5;
+      --accent: #3d9cfd;
+      --accent-dim: #2a6fad;
+      --ok: #3ecf8e;
+      --bad: #f07178;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(1200px 600px at 10% -10%, #1e3a5f 0%, transparent 55%),
+        radial-gradient(900px 500px at 100% 0%, #243028 0%, transparent 50%),
+        var(--bg);
+    }
+    main {
+      max-width: 640px;
+      margin: 40px auto;
+      padding: 24px;
+      background: color-mix(in srgb, var(--panel) 92%, black);
+      border: 1px solid var(--line);
+      border-radius: 14px;
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 22px;
+      letter-spacing: 0.02em;
+    }
+    .sub { color: var(--muted); margin-bottom: 20px; }
+    label {
+      display: block;
+      margin: 14px 0 6px;
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+    input, textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #0f1318;
+      color: var(--text);
+      font: inherit;
+    }
+    textarea { min-height: 88px; resize: vertical; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
+    button {
+      border: 0;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font: inherit;
+      font-weight: 600;
+      cursor: pointer;
+      background: var(--accent);
+      color: #061018;
+    }
+    button.secondary {
+      background: #243040;
+      color: var(--text);
+      border: 1px solid var(--line);
+    }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    #status {
+      margin-top: 16px;
+      padding: 10px 12px;
+      border-radius: 8px;
+      background: #0f1318;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      white-space: pre-wrap;
+      min-height: 48px;
+    }
+    #status.ok { color: var(--ok); border-color: #255c45; }
+    #status.bad { color: var(--bad); border-color: #5c2a30; }
+    .dot {
+      display: inline-block;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      margin-right: 8px;
+      background: var(--bad);
+      vertical-align: middle;
+    }
+    .dot.on { background: var(--ok); }
+  </style>
+</head>
+<body>
+  <main>
+    <h1>WorldPromptEngine</h1>
+    <p class="sub"><span id="dot" class="dot"></span><span id="conn">Connecting to Unreal…</span></p>
+
+    <label for="prompt">World prompt</label>
+    <textarea id="prompt" placeholder="misty alpine peaks at golden hour">misty alpine peaks at golden hour</textarea>
+
+    <div class="row">
+      <div>
+        <label for="folder">Folder name (optional)</label>
+        <input id="folder" placeholder="Forest_01" />
+      </div>
+      <div>
+        <label for="where">Where (optional)</label>
+        <input id="where" placeholder="Builds or /Game/Builds" />
+      </div>
+    </div>
+
+    <div class="row">
+      <div>
+        <label for="seed">Seed</label>
+        <input id="seed" type="number" value="1337" />
+      </div>
+      <div>
+        <label for="size">Size</label>
+        <input id="size" type="number" value="505" />
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="btnGenerate" disabled>Generate world</button>
+      <button id="btnFolder" class="secondary" disabled>Use folder</button>
+      <button id="btnStatus" class="secondary" disabled>Status</button>
+    </div>
+
+    <div id="status">Open Unreal with WorldPromptEngine loaded, then this panel connects automatically.</div>
+  </main>
+
+  <script>
+    const WS_URL = "ws://127.0.0.1:3001";
+    let socket = null;
+    let reconnectTimer = null;
+
+    const el = (id) => document.getElementById(id);
+    const setStatus = (text, kind) => {
+      const s = el("status");
+      s.textContent = text;
+      s.className = kind || "";
+    };
+    const setConnected = (on) => {
+      el("dot").className = "dot" + (on ? " on" : "");
+      el("conn").textContent = on ? "Connected to Unreal" : "Not connected — is the editor open?";
+      ["btnGenerate", "btnFolder", "btnStatus"].forEach((id) => {
+        el(id).disabled = !on;
+      });
+    };
+
+    function send(payload) {
+      return new Promise((resolve, reject) => {
+        if (!socket || socket.readyState !== WebSocket.OPEN) {
+          reject(new Error("Not connected"));
+          return;
+        }
+        const onMsg = (ev) => {
+          socket.removeEventListener("message", onMsg);
+          try {
+            resolve(JSON.parse(ev.data));
+          } catch (e) {
+            resolve({ ok: false, raw: ev.data });
+          }
+        };
+        socket.addEventListener("message", onMsg);
+        socket.send(JSON.stringify(payload));
+      });
+    }
+
+    async function connect() {
+      if (socket && (socket.readyState === WebSocket.OPEN || socket.readyState === WebSocket.CONNECTING)) {
+        return;
+      }
+      try {
+        socket = new WebSocket(WS_URL);
+      } catch (e) {
+        setConnected(false);
+        scheduleReconnect();
+        return;
+      }
+      socket.addEventListener("open", () => {
+        setConnected(true);
+        setStatus("Connected. Type a prompt and hit Generate world.", "ok");
+      });
+      socket.addEventListener("close", () => {
+        setConnected(false);
+        setStatus("Disconnected from Unreal. Reconnecting…");
+        scheduleReconnect();
+      });
+      socket.addEventListener("error", () => {
+        setConnected(false);
+      });
+    }
+
+    function scheduleReconnect() {
+      if (reconnectTimer) return;
+      reconnectTimer = setTimeout(() => {
+        reconnectTimer = null;
+        connect();
+      }, 1500);
+    }
+
+    el("btnGenerate").onclick = async () => {
+      const prompt = el("prompt").value.trim();
+      if (!prompt) {
+        setStatus("Enter a prompt first.", "bad");
+        return;
+      }
+      const size = Number(el("size").value) || 505;
+      const seed = Number(el("seed").value) || 1337;
+      try {
+        const folder = el("folder").value.trim();
+        const where = el("where").value.trim();
+        if (folder) {
+          await send({ action: "use_folder", folder, where: where || undefined });
+        }
+        const ack = await send({
+          action: "generate_from_prompt",
+          prompt,
+          params: { width: size, height: size, seed },
+        });
+        setStatus("Queued:\n" + JSON.stringify(ack, null, 2), ack.ok ? "ok" : "bad");
+      } catch (e) {
+        setStatus(String(e), "bad");
+      }
+    };
+
+    el("btnFolder").onclick = async () => {
+      const folder = el("folder").value.trim();
+      if (!folder) {
+        setStatus("Enter a folder name first.", "bad");
+        return;
+      }
+      try {
+        const ack = await send({
+          action: "use_folder",
+          folder,
+          where: el("where").value.trim() || undefined,
+        });
+        setStatus("Folder:\n" + JSON.stringify(ack, null, 2), ack.ok ? "ok" : "bad");
+      } catch (e) {
+        setStatus(String(e), "bad");
+      }
+    };
+
+    el("btnStatus").onclick = async () => {
+      try {
+        const ack = await send({ action: "content_status" });
+        setStatus("Status command queued.\n" + JSON.stringify(ack, null, 2), ack.ok ? "ok" : "bad");
+      } catch (e) {
+        setStatus(String(e), "bad");
+      }
+    };
+
+    connect();
+  </script>
+</body>
+</html>

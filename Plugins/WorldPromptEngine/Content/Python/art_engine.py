@@ -364,6 +364,24 @@ def generate_heightmap_task(state: dict, params: dict):
 
         _import_heightmap_5_8(state, png_path, params)
 
+        # Structures (real meshes or BasicShapes proxies)
+        state["progress"] = 0.97
+        yield True
+        try:
+            import structure_library
+            params_struct = dict(params)
+            if state.get("last_parse"):
+                params_struct.setdefault("prompt", "")
+            structure_library.spawn_structures(state, pixels, width, height, params_struct)
+        except Exception as struct_e:
+            unreal.log_warning("WorldPromptEngine: structure pass skipped: {}".format(struct_e))
+
+        # Refresh PCG if present
+        try:
+            refresh_pcg_components()
+        except Exception:
+            pass
+
         state["progress"] = 1.0
         state["is_generating"] = False
         if _HAS_UNREAL:
@@ -554,11 +572,15 @@ def execute_command(state: dict, command):
                 merged.setdefault("height", 505)
                 state["last_parse"] = parsed
                 state["pcg_spawn_table"] = prompt_matrix.resolve_assets(parsed["pcg_tags"])
-                unreal.log("WorldPromptEngine: prompt -> archetype '{}' (score {}), weather '{}' (score {}), {} PCG entries".format(
+                state["structure_plan"] = parsed.get("structures") or []
+                unreal.log("WorldPromptEngine: prompt -> archetype '{}' (score {}), weather '{}' (score {}), {} PCG entries, {} structure types".format(
                     parsed["archetype"], parsed["archetype_score"],
                     parsed["weather"], parsed["weather_score"],
-                    len(state["pcg_spawn_table"])))
+                    len(state["pcg_spawn_table"]),
+                    len(state["structure_plan"])))
                 prompt_matrix.apply_weather_preset(parsed["weather"])
+                merged["prompt"] = prompt
+                merged.setdefault("spawn_structures", True)
                 state["active_task"] = generate_heightmap_task(state, merged)
             else:
                 unreal.log_warning("WorldPromptEngine: generation already in progress; command dropped")
