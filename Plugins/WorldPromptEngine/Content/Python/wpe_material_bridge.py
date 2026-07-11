@@ -27,7 +27,7 @@ def ensure_mpc(path: str = MPC_PATH):
 
     try:
         asset_tools = unreal.AssetToolsHelpers.get_asset_tools()
-        factory = unreal.MaterialParameterCollectionFactory()
+        factory = unreal.MaterialParameterCollectionFactoryNew()
         package_path = "/Game/WPE/Materials"
         name = "MPC_WPE_World"
         mpc = asset_tools.create_asset(name, package_path, unreal.MaterialParameterCollection, factory)

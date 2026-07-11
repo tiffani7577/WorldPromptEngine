@@ -32,6 +32,8 @@ MAT_DIR = "/Game/WPE/Materials"
 LAYER_DIR = "/Game/WPE/Materials/Layers"
 MAT_PATH = "/Game/WPE/Materials/ML_WPE_Landscape"
 MAT_NAME = "ML_WPE_Landscape"
+MPC_PATH = "/Game/WPE/Materials/MPC_WPE_World"
+MPC_NAME = "MPC_WPE_World"
 
 LAYER_INFOS = (
     ("LI_Grass", "Grass"),
@@ -159,6 +161,93 @@ def _mel():
     return unreal.MaterialEditingLibrary if hasattr(unreal, "MaterialEditingLibrary") else None
 
 
+def ensure_mpc_world():
+    """
+    Ensure /Game/WPE/Materials/MPC_WPE_World exists with Director param names.
+    Reuses wpe_material_bridge when available.
+    """
+    try:
+        import wpe_material_bridge
+        return wpe_material_bridge.ensure_mpc(MPC_PATH)
+    except Exception:
+        pass
+    if _asset_exists(MPC_PATH):
+        return unreal.load_asset(MPC_PATH)
+    try:
+        _ensure_dirs()
+        tools = unreal.AssetToolsHelpers.get_asset_tools()
+        factory = unreal.MaterialParameterCollectionFactoryNew()
+        mpc = tools.create_asset(MPC_NAME, MAT_DIR, unreal.MaterialParameterCollection, factory)
+        if mpc is None:
+            return None
+        scalars = []
+        for pname, default in (
+            ("Snowline", 0.72),
+            ("RockSlope", 0.55),
+            ("Wetness", 0.35),
+            ("MacroScale", 1.0),
+        ):
+            p = unreal.CollectionScalarParameter()
+            p.set_editor_property("parameter_name", pname)
+            p.set_editor_property("default_value", float(default))
+            scalars.append(p)
+        mpc.set_editor_property("scalar_parameters", scalars)
+        v = unreal.CollectionVectorParameter()
+        v.set_editor_property("parameter_name", "WorldTint")
+        v.set_editor_property("default_value", unreal.LinearColor(1, 1, 1, 1))
+        mpc.set_editor_property("vector_parameters", [v])
+        try:
+            unreal.EditorAssetLibrary.save_asset(MPC_PATH)
+        except Exception:
+            pass
+        return mpc
+    except Exception as e:
+        unreal.log_warning("ensure_mpc_world failed: {}".format(e))
+        return None
+
+
+def _mpc_param(mat, mel, mpc, name, x, y):
+    """MaterialExpressionCollectionParameter bound to MPC."""
+    if not hasattr(unreal, "MaterialExpressionCollectionParameter"):
+        return None
+    node = mel.create_material_expression(
+        mat, unreal.MaterialExpressionCollectionParameter, x, y)
+    try:
+        node.set_editor_property("collection", mpc)
+        node.set_editor_property("parameter_name", name)
+    except Exception as e:
+        unreal.log_warning("MPC param {} bind failed: {}".format(name, e))
+    return node
+
+
+def _material_has_mpc_wiring(mat) -> bool:
+    """True if ML_WPE_Landscape already samples Snowline from MPC_WPE_World."""
+    try:
+        exprs = []
+        if hasattr(unreal, "MaterialEditingLibrary"):
+            # get_material_expressions may not exist on all builds — scan via property
+            try:
+                exprs = list(mat.get_editor_property("expressions") or [])
+            except Exception:
+                exprs = []
+        for e in exprs:
+            try:
+                if e is None:
+                    continue
+                cname = e.get_class().get_name()
+                if "CollectionParameter" not in cname:
+                    continue
+                pname = str(e.get_editor_property("parameter_name") or "")
+                coll = e.get_editor_property("collection")
+                if pname == "Snowline" and coll is not None:
+                    return True
+            except Exception:
+                continue
+    except Exception:
+        pass
+    return False
+
+
 def _new_material():
     tools = unreal.AssetToolsHelpers.get_asset_tools()
     factory = unreal.MaterialFactoryNew() if hasattr(unreal, "MaterialFactoryNew") else None
@@ -206,15 +295,15 @@ def _connect_prop(mel, expr, prop):
         return False
 
 
-def build_auto_slope_material(force_rebuild: bool = False, color_set: str = "default") -> dict:
+def build_auto_slope_material(force_rebuild: bool = False, color_set: str = "default",
+                              wire_mpc: bool = True) -> dict:
     """
-    Build ML_WPE_Landscape that auto-blends:
+    Build/upgrade ML_WPE_Landscape that auto-blends:
       flat → grass, steep → rock, high → snow
-    No layer painting required for a correct look.
-
-    color_set: "default" | "underwater" (sand / teal rock / pale reef)
+    When wire_mpc=True, drives Snowline/RockSlope/Wetness/MacroScale/WorldTint from MPC_WPE_World.
+    Never creates a different material path — only ML_WPE_Landscape.
     """
-    summary = {"ok": False, "path": MAT_PATH, "mode": "slope_height_auto", "created": False}
+    summary = {"ok": False, "path": MAT_PATH, "mode": "slope_height_mpc", "created": False, "mpc_wired": False}
     if not _HAS_UNREAL:
         summary["error"] = "no_unreal"
         return summary
@@ -226,6 +315,10 @@ def build_auto_slope_material(force_rebuild: bool = False, color_set: str = "def
             summary["error"] = "MaterialEditingLibrary unavailable"
             unreal.log_warning("WorldPromptEngine: {}".format(summary["error"]))
             return summary
+
+        mpc = ensure_mpc_world() if wire_mpc else None
+        if wire_mpc and mpc is None:
+            unreal.log_warning("WorldPromptEngine: MPC_WPE_World missing — building without MPC params")
 
         palette = dict(COLORS)
         if color_set == "underwater":
@@ -240,29 +333,61 @@ def build_auto_slope_material(force_rebuild: bool = False, color_set: str = "def
         if existed and not force_rebuild:
             mat = unreal.load_asset(MAT_PATH)
             _set_used_with_landscape(mat)
-            summary["ok"] = True
-            summary["created"] = False
-            unreal.log("WorldPromptEngine: landscape material already exists at {}".format(MAT_PATH))
-            return summary
+            if wire_mpc and mpc is not None and not _material_has_mpc_wiring(mat):
+                unreal.log("WorldPromptEngine: upgrading existing ML_WPE_Landscape with MPC wiring (same asset)")
+                force_rebuild = True
+            elif wire_mpc and _material_has_mpc_wiring(mat):
+                summary["ok"] = True
+                summary["created"] = False
+                summary["mpc_wired"] = True
+                unreal.log("WorldPromptEngine: landscape material already MPC-wired at {}".format(MAT_PATH))
+                return summary
+            elif not force_rebuild:
+                summary["ok"] = True
+                summary["created"] = False
+                unreal.log("WorldPromptEngine: landscape material already exists at {}".format(MAT_PATH))
+                return summary
 
         if existed and force_rebuild:
+            mat = unreal.load_asset(MAT_PATH)
+            if mat is None:
+                try:
+                    unreal.EditorAssetLibrary.delete_asset(MAT_PATH)
+                except Exception:
+                    pass
+                mat = _new_material()
+                summary["created"] = True
+            else:
+                # In-place graph rebuild — do not replace the asset path
+                try:
+                    mel.delete_all_material_expressions(mat)
+                except Exception:
+                    pass
+                summary["created"] = False
+        else:
+            mat = _new_material()
+            if mat is None:
+                summary["error"] = "material_create_failed"
+                return summary
+            summary["created"] = True
             try:
-                unreal.EditorAssetLibrary.delete_asset(MAT_PATH)
+                mel.delete_all_material_expressions(mat)
             except Exception:
                 pass
 
-        mat = _new_material()
         if mat is None:
-            summary["error"] = "material_create_failed"
+            summary["error"] = "material_missing"
             return summary
-        summary["created"] = True
+
         _set_used_with_landscape(mat)
 
-        # Clear default graph noise if any
-        try:
-            mel.delete_all_material_expressions(mat)
-        except Exception:
-            pass
+        # --- MPC parameters (optional) ---
+        snowline = _mpc_param(mat, mel, mpc, "Snowline", -1400, 600) if mpc else None
+        rock_slope = _mpc_param(mat, mel, mpc, "RockSlope", -1400, 700) if mpc else None
+        wetness = _mpc_param(mat, mel, mpc, "Wetness", -1400, 800) if mpc else None
+        macro_scale = _mpc_param(mat, mel, mpc, "MacroScale", -1400, 900) if mpc else None
+        world_tint = _mpc_param(mat, mel, mpc, "WorldTint", -1400, 1000) if mpc else None
+        summary["mpc_wired"] = bool(snowline and rock_slope and wetness and macro_scale and world_tint)
 
         # --- Slope from vertex normal (works on Landscape) ---
         nrm = None
@@ -291,18 +416,34 @@ def build_auto_slope_material(force_rebuild: bool = False, color_set: str = "def
             mel.connect_material_expressions(flatness, "", absn, "")
             flatness = absn
 
+        # RockSlope: higher → more rock (steepen flatness curve via Power(flatness, 1+RockSlope*3))
         if flatness is not None and hasattr(unreal, "MaterialExpressionPower"):
             pow_n = mel.create_material_expression(mat, unreal.MaterialExpressionPower, -540, 40)
             try:
-                exp = mel.create_material_expression(
-                    mat, unreal.MaterialExpressionConstant, -720, 200)
-                exp.set_editor_property("r", 2.2)
-                mel.connect_material_expressions(flatness, "", pow_n, "Base")
-                mel.connect_material_expressions(exp, "", pow_n, "Exp")
+                if rock_slope is not None and hasattr(unreal, "MaterialExpressionAdd") and hasattr(unreal, "MaterialExpressionMultiply"):
+                    one = mel.create_material_expression(mat, unreal.MaterialExpressionConstant, -720, 200)
+                    one.set_editor_property("r", 1.0)
+                    three = mel.create_material_expression(mat, unreal.MaterialExpressionConstant, -720, 260)
+                    three.set_editor_property("r", 3.0)
+                    mul_rs = mel.create_material_expression(mat, unreal.MaterialExpressionMultiply, -560, 220)
+                    mel.connect_material_expressions(rock_slope, "", mul_rs, "A")
+                    mel.connect_material_expressions(three, "", mul_rs, "B")
+                    exp = mel.create_material_expression(mat, unreal.MaterialExpressionAdd, -400, 220)
+                    mel.connect_material_expressions(one, "", exp, "A")
+                    mel.connect_material_expressions(mul_rs, "", exp, "B")
+                    mel.connect_material_expressions(flatness, "", pow_n, "Base")
+                    mel.connect_material_expressions(exp, "", pow_n, "Exp")
+                else:
+                    exp = mel.create_material_expression(mat, unreal.MaterialExpressionConstant, -720, 200)
+                    exp.set_editor_property("r", 2.2)
+                    mel.connect_material_expressions(flatness, "", pow_n, "Base")
+                    mel.connect_material_expressions(exp, "", pow_n, "Exp")
                 flatness = pow_n
-            except Exception:
-                pass
+            except Exception as pe:
+                unreal.log_warning("RockSlope power wire: {}".format(pe))
 
+        # Elevation 0..1 from world Z, then snow mask vs Snowline
+        height_01 = None
         height_mask = None
         if hasattr(unreal, "MaterialExpressionAbsoluteWorldPosition"):
             wp = mel.create_material_expression(
@@ -333,9 +474,37 @@ def build_auto_slope_material(force_rebuild: bool = False, color_set: str = "def
                         sat = mel.create_material_expression(
                             mat, unreal.MaterialExpressionSaturate, -560, 400)
                         mel.connect_material_expressions(mul, "", sat, "")
-                        height_mask = sat
+                        height_01 = sat
                     else:
-                        height_mask = mul
+                        height_01 = mul
+
+        if height_01 is not None and snowline is not None and hasattr(unreal, "MaterialExpressionSmoothStep"):
+            # SmoothStep(Snowline, 1, height) → snow alpha
+            one_c = mel.create_material_expression(mat, unreal.MaterialExpressionConstant, -400, 520)
+            try:
+                one_c.set_editor_property("r", 1.0)
+            except Exception:
+                pass
+            ss = mel.create_material_expression(mat, unreal.MaterialExpressionSmoothStep, -280, 400)
+            try:
+                mel.connect_material_expressions(snowline, "", ss, "Min")
+                mel.connect_material_expressions(one_c, "", ss, "Max")
+                mel.connect_material_expressions(height_01, "", ss, "Value")
+                height_mask = ss
+            except Exception:
+                # Fallback: saturate(height - snowline)
+                if hasattr(unreal, "MaterialExpressionSubtract"):
+                    sub = mel.create_material_expression(mat, unreal.MaterialExpressionSubtract, -280, 400)
+                    mel.connect_material_expressions(height_01, "", sub, "A")
+                    mel.connect_material_expressions(snowline, "", sub, "B")
+                    if hasattr(unreal, "MaterialExpressionSaturate"):
+                        sat2 = mel.create_material_expression(mat, unreal.MaterialExpressionSaturate, -120, 400)
+                        mel.connect_material_expressions(sub, "", sat2, "")
+                        height_mask = sat2
+                    else:
+                        height_mask = sub
+        elif height_01 is not None:
+            height_mask = height_01
 
         grass_tex = None if color_set == "underwater" else _find_texture_hint(("grass", "soil", "ground", "lawn", "moss"))
         rock_tex = None if color_set == "underwater" else _find_texture_hint(("rock", "cliff", "stone", "granite", "slate"))
@@ -349,13 +518,28 @@ def build_auto_slope_material(force_rebuild: bool = False, color_set: str = "def
                     ts.set_editor_property("texture", tex)
                 except Exception:
                     pass
+                # MacroScale drives UV tiling when LandscapeLayerCoords available
                 if hasattr(unreal, "MaterialExpressionLandscapeLayerCoords"):
                     uv = mel.create_material_expression(
-                        mat, unreal.MaterialExpressionLandscapeLayerCoords, x - 220, y + 80)
-                    try:
-                        mel.connect_material_expressions(uv, "", ts, "UVs")
-                    except Exception:
-                        pass
+                        mat, unreal.MaterialExpressionLandscapeLayerCoords, x - 280, y + 80)
+                    if macro_scale is not None and hasattr(unreal, "MaterialExpressionMultiply"):
+                        # Append MacroScale.xx as UV scale
+                        uv_mul = mel.create_material_expression(
+                            mat, unreal.MaterialExpressionMultiply, x - 140, y + 80)
+                        try:
+                            mel.connect_material_expressions(uv, "", uv_mul, "A")
+                            mel.connect_material_expressions(macro_scale, "", uv_mul, "B")
+                            mel.connect_material_expressions(uv_mul, "", ts, "UVs")
+                        except Exception:
+                            try:
+                                mel.connect_material_expressions(uv, "", ts, "UVs")
+                            except Exception:
+                                pass
+                    else:
+                        try:
+                            mel.connect_material_expressions(uv, "", ts, "UVs")
+                        except Exception:
+                            pass
                 return ts
             return _const3(mat, mel, rgb, x, y)
 
@@ -385,16 +569,57 @@ def build_auto_slope_material(force_rebuild: bool = False, color_set: str = "def
                 except Exception as le2:
                     unreal.log_warning("lerp snow connect: {}".format(le2))
 
+            # Wetness darkening: lerp(color, color*0.55, Wetness)
+            if wetness is not None and hasattr(unreal, "MaterialExpressionMultiply"):
+                try:
+                    dark = mel.create_material_expression(mat, unreal.MaterialExpressionConstant3Vector, 280, 200)
+                    dark.set_editor_property("constant", unreal.LinearColor(0.55, 0.55, 0.55, 1.0))
+                    mul_d = mel.create_material_expression(mat, unreal.MaterialExpressionMultiply, 360, 40)
+                    mel.connect_material_expressions(final_c, "", mul_d, "A")
+                    mel.connect_material_expressions(dark, "", mul_d, "B")
+                    lerp_w = mel.create_material_expression(mat, unreal.MaterialExpressionLinearInterpolate, 480, 40)
+                    mel.connect_material_expressions(final_c, "", lerp_w, "A")
+                    mel.connect_material_expressions(mul_d, "", lerp_w, "B")
+                    mel.connect_material_expressions(wetness, "", lerp_w, "Alpha")
+                    final_c = lerp_w
+                except Exception as we:
+                    unreal.log_warning("Wetness wire: {}".format(we))
+
+            # WorldTint multiply
+            if world_tint is not None and hasattr(unreal, "MaterialExpressionMultiply"):
+                try:
+                    mul_t = mel.create_material_expression(mat, unreal.MaterialExpressionMultiply, 640, 40)
+                    mel.connect_material_expressions(final_c, "", mul_t, "A")
+                    mel.connect_material_expressions(world_tint, "", mul_t, "B")
+                    final_c = mul_t
+                except Exception as te:
+                    unreal.log_warning("WorldTint wire: {}".format(te))
+
             _connect_prop(mel, final_c, unreal.MaterialProperty.MP_BASE_COLOR)
 
+            # Roughness: dry ~0.82, wet → ~0.45
             if hasattr(unreal, "MaterialExpressionConstant"):
-                rough = mel.create_material_expression(
-                    mat, unreal.MaterialExpressionConstant, 160, 240)
+                rough_dry = mel.create_material_expression(mat, unreal.MaterialExpressionConstant, 480, 240)
                 try:
-                    rough.set_editor_property("r", 0.88 if color_set == "underwater" else 0.82)
+                    rough_dry.set_editor_property("r", 0.88 if color_set == "underwater" else 0.82)
                 except Exception:
                     pass
-                _connect_prop(mel, rough, unreal.MaterialProperty.MP_ROUGHNESS)
+                rough_final = rough_dry
+                if wetness is not None and hasattr(unreal, "MaterialExpressionLinearInterpolate"):
+                    rough_wet = mel.create_material_expression(mat, unreal.MaterialExpressionConstant, 480, 300)
+                    try:
+                        rough_wet.set_editor_property("r", 0.45)
+                    except Exception:
+                        pass
+                    lerp_r = mel.create_material_expression(mat, unreal.MaterialExpressionLinearInterpolate, 640, 260)
+                    try:
+                        mel.connect_material_expressions(rough_dry, "", lerp_r, "A")
+                        mel.connect_material_expressions(rough_wet, "", lerp_r, "B")
+                        mel.connect_material_expressions(wetness, "", lerp_r, "Alpha")
+                        rough_final = lerp_r
+                    except Exception:
+                        pass
+                _connect_prop(mel, rough_final, unreal.MaterialProperty.MP_ROUGHNESS)
         else:
             _connect_prop(mel, grass, unreal.MaterialProperty.MP_BASE_COLOR)
 
@@ -436,16 +661,28 @@ def build_auto_slope_material(force_rebuild: bool = False, color_set: str = "def
             unreal.EditorAssetLibrary.save_asset(MAT_PATH)
         except Exception:
             pass
+        if mpc is not None:
+            try:
+                unreal.EditorAssetLibrary.save_asset(MPC_PATH)
+            except Exception:
+                pass
 
         summary["ok"] = True
         unreal.log(
-            "WorldPromptEngine: auto landscape material ready at {} (set={})".format(
-                MAT_PATH, color_set))
+            "WorldPromptEngine: auto landscape material ready at {} (set={} mpc_wired={})".format(
+                MAT_PATH, color_set, summary["mpc_wired"]))
         return summary
     except Exception as e:
         unreal.log_error("build_auto_slope_material failed: {}".format(e))
         summary["error"] = str(e)
         return summary
+
+
+def wire_mpc_into_existing_landscape_material(color_set: str = "default") -> dict:
+    """
+    Upgrade ML_WPE_Landscape in place with MPC controls. Does not create a new material asset.
+    """
+    return build_auto_slope_material(force_rebuild=True, color_set=color_set, wire_mpc=True)
 
 
 def ensure_landscape_material_stack(force_rebuild: bool = False, assign: bool = True,
@@ -464,10 +701,18 @@ def ensure_landscape_material_stack(force_rebuild: bool = False, assign: bool = 
     try:
         summary["layer_infos"] = ensure_layer_infos()
         summary["material"] = build_auto_slope_material(
-            force_rebuild=force_rebuild, color_set=color_set)
+            force_rebuild=force_rebuild, color_set=color_set, wire_mpc=True)
         if assign:
             import landscape_materials
             summary["assigned"] = landscape_materials.try_assign_landscape_material(MAT_PATH)
+            # Also assign via landscape_apply helper path for WPE labeled actors
+            try:
+                import landscape_apply
+                # soft assign already handled; ensure MPC defaults applied
+                import wpe_material_bridge
+                summary["mpc"] = wpe_material_bridge.apply_world_params()
+            except Exception:
+                pass
         summary["ok"] = bool(summary["material"].get("ok"))
         return summary
     except Exception as e:
