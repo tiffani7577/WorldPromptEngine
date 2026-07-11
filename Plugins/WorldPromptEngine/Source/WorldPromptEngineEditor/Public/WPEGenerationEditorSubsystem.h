@@ -3,7 +3,10 @@
 #include "CoreMinimal.h"
 #include "EditorSubsystem.h"
 #include "WPEGenerationJob.h"
+#include <atomic>
 #include "WPEGenerationEditorSubsystem.generated.h"
+
+class ALandscape;
 
 /**
  * Editor Director for versioned JSON jobs.
@@ -37,6 +40,22 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "WPE|Director")
 	bool SubmitJobJson(const FString& JsonText, FString& OutError);
 
+	/**
+	 * Kick async plain-data height generation for LastJob (or optional Json).
+	 * Worker threads never touch UObjects; game thread calls existing ApplyHeightmapToLandscape.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "WPE|Director")
+	bool BeginGenerateFromLastJob(ALandscape* TargetLandscape, FString& OutError);
+
+	UFUNCTION(BlueprintCallable, Category = "WPE|Director")
+	bool BeginGenerateFromJson(const FString& JsonText, ALandscape* TargetLandscape, FString& OutError);
+
+	UFUNCTION(BlueprintCallable, Category = "WPE|Director")
+	void CancelGeneration();
+
+	UFUNCTION(BlueprintCallable, Category = "WPE|Director")
+	bool IsGenerationRunning() const { return bGenerationRunning; }
+
 	UFUNCTION(BlueprintCallable, Category = "WPE|Director")
 	FWPEGenerationJob GetLastJob() const { return LastJob; }
 
@@ -54,10 +73,15 @@ private:
 	static float ReadFloatField(const TSharedPtr<FJsonObject>& Obj, const TArray<FString>& Keys, float DefaultValue);
 	static FString ReadStringField(const TSharedPtr<FJsonObject>& Obj, const TArray<FString>& Keys, const FString& DefaultValue);
 	static bool IsValidLandscapeResolution(int32 Value);
+	void ApplyGeneratedHeightsOnGameThread(TArray<int32> Heights, int32 ResX, int32 ResY, TWeakObjectPtr<ALandscape> WeakLandscape);
 
 	UPROPERTY()
 	FWPEGenerationJob LastJob;
 
 	UPROPERTY()
 	FWPEGenerationJobStatus LastStatus;
+
+	std::atomic<bool> bCancelRequested{false};
+	bool bGenerationRunning = false;
+	uint32 GenerationToken = 0;
 };

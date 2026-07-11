@@ -1,4 +1,7 @@
 #include "WPEGenerationEditorSubsystem.h"
+#include "WPEWorldGeneratorSubsystem.h"
+#include "Landscape.h"
+#include "Async/Async.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonReader.h"
 #include "Serialization/JsonSerializer.h"
@@ -17,6 +20,8 @@ void UWPEGenerationEditorSubsystem::Deinitialize()
 
 void UWPEGenerationEditorSubsystem::ResetStatus()
 {
+	bCancelRequested.store(false);
+	bGenerationRunning = false;
 	LastStatus = FWPEGenerationJobStatus();
 	LastStatus.Phase = EWPEGenerationPhase::Idle;
 	LastStatus.bOk = true;
@@ -368,5 +373,316 @@ bool UWPEGenerationEditorSubsystem::SubmitJobJson(const FString& JsonText, FStri
 		Job.SchemaVersion, Job.Seed, Job.Terrain.ResolutionX, Job.Terrain.ResolutionY);
 	LastStatus.Progress = 0.05f;
 	UE_LOG(LogTemp, Log, TEXT("WPE Director: %s"), *LastStatus.Message);
+	return true;
+}
+
+namespace WPEDirectorNoise
+{
+	static FORCEINLINE float Fade(float T)
+	{
+		return T * T * T * (T * (T * 6.0f - 15.0f) + 10.0f);
+	}
+
+	static FORCEINLINE float Lerp(float A, float B, float T)
+	{
+		return A + T * (B - A);
+	}
+
+	static FORCEINLINE float Grad(int32 Hash, float X, float Y)
+	{
+		const int32 H = Hash & 7;
+		const float U = H < 4 ? X : Y;
+		const float V = H < 4 ? Y : X;
+		return ((H & 1) ? -U : U) + (((H & 2) ? -V : V) * 0.5f);
+	}
+
+	struct FPerlin2D
+	{
+		int32 Perm[512];
+
+		explicit FPerlin2D(int32 Seed)
+		{
+			TArray<int32> P;
+			P.Reserve(256);
+			for (int32 I = 0; I < 256; ++I)
+			{
+				P.Add(I);
+			}
+			FRandomStream Rng(Seed);
+			for (int32 I = 255; I > 0; --I)
+			{
+				const int32 J = Rng.RandRange(0, I);
+				Swap(P[I], P[J]);
+			}
+			for (int32 I = 0; I < 256; ++I)
+			{
+				Perm[I] = P[I];
+				Perm[I + 256] = P[I];
+			}
+		}
+
+		float Noise(float X, float Y) const
+		{
+			const int32 Xi = FMath::FloorToInt(X) & 255;
+			const int32 Yi = FMath::FloorToInt(Y) & 255;
+			const float Xf = X - FMath::FloorToFloat(X);
+			const float Yf = Y - FMath::FloorToFloat(Y);
+			const float U = Fade(Xf);
+			const float V = Fade(Yf);
+			const int32 AA = Perm[Perm[Xi] + Yi];
+			const int32 AB = Perm[Perm[Xi] + Yi + 1];
+			const int32 BA = Perm[Perm[Xi + 1] + Yi];
+			const int32 BB = Perm[Perm[Xi + 1] + Yi + 1];
+			const float X1 = Lerp(Grad(AA, Xf, Yf), Grad(BA, Xf - 1.0f, Yf), U);
+			const float X2 = Lerp(Grad(AB, Xf, Yf - 1.0f), Grad(BB, Xf - 1.0f, Yf - 1.0f), U);
+			return Lerp(X1, X2, V);
+		}
+
+		float FBM(float X, float Y, int32 Octaves, float Frequency, float Persistence, float Lacunarity) const
+		{
+			float Total = 0.0f;
+			float Amplitude = 1.0f;
+			float MaxAmp = 0.0f;
+			float Freq = Frequency;
+			const int32 SafeOctaves = FMath::Clamp(Octaves, 1, 16);
+			for (int32 O = 0; O < SafeOctaves; ++O)
+			{
+				Total += Noise(X * Freq, Y * Freq) * Amplitude;
+				MaxAmp += Amplitude;
+				Amplitude *= Persistence;
+				Freq *= Lacunarity;
+			}
+			return MaxAmp > 0.0f ? Total / MaxAmp : 0.0f;
+		}
+	};
+
+	/** Lightweight thermal-ish smoothing on plain arrays (no UObjects). */
+	static void SimpleErosionPass(TArray<float>& Height01, int32 ResX, int32 ResY, int32 Iterations, const TFunctionRef<bool()>& ShouldCancel)
+	{
+		if (Iterations <= 0 || ResX < 3 || ResY < 3)
+		{
+			return;
+		}
+		TArray<float> Scratch = Height01;
+		for (int32 It = 0; It < Iterations; ++It)
+		{
+			if (ShouldCancel())
+			{
+				return;
+			}
+			for (int32 Y = 1; Y < ResY - 1; ++Y)
+			{
+				for (int32 X = 1; X < ResX - 1; ++X)
+				{
+					const int32 I = Y * ResX + X;
+					const float C = Height01[I];
+					const float Avg = 0.25f * (
+						Height01[I - 1] + Height01[I + 1] + Height01[I - ResX] + Height01[I + ResX]);
+					const float Diff = C - Avg;
+					Scratch[I] = C - Diff * 0.35f;
+				}
+			}
+			Height01 = Scratch;
+		}
+	}
+}
+
+void UWPEGenerationEditorSubsystem::CancelGeneration()
+{
+	bCancelRequested.store(true);
+	if (bGenerationRunning)
+	{
+		LastStatus.Phase = EWPEGenerationPhase::Cancelled;
+		LastStatus.Message = TEXT("Cancel requested");
+	}
+}
+
+void UWPEGenerationEditorSubsystem::ApplyGeneratedHeightsOnGameThread(
+	TArray<int32> Heights,
+	int32 ResX,
+	int32 ResY,
+	TWeakObjectPtr<ALandscape> WeakLandscape)
+{
+	bGenerationRunning = false;
+
+	if (bCancelRequested.load())
+	{
+		LastStatus.Phase = EWPEGenerationPhase::Cancelled;
+		LastStatus.bOk = false;
+		LastStatus.Message = TEXT("Cancelled before Landscape apply");
+		LastStatus.Progress = 0.0f;
+		return;
+	}
+
+	ALandscape* Landscape = WeakLandscape.Get();
+	if (!Landscape)
+	{
+		LastStatus.Phase = EWPEGenerationPhase::Failed;
+		LastStatus.bOk = false;
+		LastStatus.Message = TEXT("Landscape target became invalid before apply");
+		return;
+	}
+
+	if (!GEngine)
+	{
+		LastStatus.Phase = EWPEGenerationPhase::Failed;
+		LastStatus.bOk = false;
+		LastStatus.Message = TEXT("GEngine unavailable");
+		return;
+	}
+
+	UWPEWorldGeneratorSubsystem* Native = GEngine->GetEngineSubsystem<UWPEWorldGeneratorSubsystem>();
+	if (!Native)
+	{
+		LastStatus.Phase = EWPEGenerationPhase::Failed;
+		LastStatus.bOk = false;
+		LastStatus.Message = TEXT("UWPEWorldGeneratorSubsystem missing");
+		return;
+	}
+
+	LastStatus.Phase = EWPEGenerationPhase::ApplyingLandscape;
+	LastStatus.Message = TEXT("Applying heights via existing SetHeightData adapter");
+	LastStatus.Progress = 0.9f;
+
+	// REUSE Stage 1 path — do not duplicate FLandscapeEditDataInterface writes here.
+	const bool bOk = Native->ApplyHeightmapToLandscape(Landscape, Heights, ResX, ResY);
+	if (!bOk)
+	{
+		LastStatus.Phase = EWPEGenerationPhase::Failed;
+		LastStatus.bOk = false;
+		LastStatus.Message = TEXT("ApplyHeightmapToLandscape rejected or failed");
+		LastStatus.Progress = 1.0f;
+		return;
+	}
+
+	LastStatus.Phase = EWPEGenerationPhase::Completed;
+	LastStatus.bOk = true;
+	LastStatus.Message = FString::Printf(TEXT("Applied %dx%d via existing native adapter"), ResX, ResY);
+	LastStatus.Progress = 1.0f;
+	UE_LOG(LogTemp, Log, TEXT("WPE Director: %s"), *LastStatus.Message);
+}
+
+bool UWPEGenerationEditorSubsystem::BeginGenerateFromJson(const FString& JsonText, ALandscape* TargetLandscape, FString& OutError)
+{
+	if (!SubmitJobJson(JsonText, OutError))
+	{
+		return false;
+	}
+	return BeginGenerateFromLastJob(TargetLandscape, OutError);
+}
+
+bool UWPEGenerationEditorSubsystem::BeginGenerateFromLastJob(ALandscape* TargetLandscape, FString& OutError)
+{
+	if (bGenerationRunning)
+	{
+		OutError = TEXT("generation already running");
+		return false;
+	}
+	if (!TargetLandscape)
+	{
+		OutError = TEXT("TargetLandscape is null");
+		LastStatus.Phase = EWPEGenerationPhase::Failed;
+		LastStatus.bOk = false;
+		LastStatus.Message = OutError;
+		return false;
+	}
+	if (LastStatus.Phase != EWPEGenerationPhase::Validated
+		&& LastStatus.Phase != EWPEGenerationPhase::Completed
+		&& LastStatus.Phase != EWPEGenerationPhase::Failed
+		&& LastStatus.Phase != EWPEGenerationPhase::Cancelled
+		&& LastStatus.Phase != EWPEGenerationPhase::Idle)
+	{
+		// Allow restart from Validated primarily; also tolerate Idle if LastJob already set.
+	}
+	if (LastJob.Prompt.IsEmpty())
+	{
+		OutError = TEXT("no validated job — call SubmitJobJson first");
+		return false;
+	}
+
+	bCancelRequested.store(false);
+	bGenerationRunning = true;
+	++GenerationToken;
+	const uint32 Token = GenerationToken;
+	const FWPEGenerationJob JobCopy = LastJob;
+	TWeakObjectPtr<ALandscape> WeakLandscape(TargetLandscape);
+	TWeakObjectPtr<UWPEGenerationEditorSubsystem> WeakThis(this);
+
+	LastStatus.Phase = EWPEGenerationPhase::GeneratingTerrain;
+	LastStatus.bOk = true;
+	LastStatus.Message = TEXT("Async fBm / erosion on worker (plain arrays)");
+	LastStatus.Progress = 0.1f;
+
+	Async(EAsyncExecution::ThreadPool, [WeakThis, WeakLandscape, JobCopy, Token]()
+	{
+		const int32 ResX = JobCopy.Terrain.ResolutionX;
+		const int32 ResY = JobCopy.Terrain.ResolutionY;
+		const int32 Count = ResX * ResY;
+
+		auto ShouldCancel = [WeakThis, Token]() -> bool
+		{
+			if (UWPEGenerationEditorSubsystem* Self = WeakThis.Get())
+			{
+				return Self->bCancelRequested.load() || Self->GenerationToken != Token;
+			}
+			return true;
+		};
+
+		TArray<float> Height01;
+		Height01.SetNumUninitialized(Count);
+		const WPEDirectorNoise::FPerlin2D Noise(JobCopy.Seed);
+		for (int32 Y = 0; Y < ResY; ++Y)
+		{
+			if (ShouldCancel())
+			{
+				break;
+			}
+			for (int32 X = 0; X < ResX; ++X)
+			{
+				const float N = Noise.FBM(
+					static_cast<float>(X),
+					static_cast<float>(Y),
+					JobCopy.Terrain.Octaves,
+					JobCopy.Terrain.Frequency,
+					JobCopy.Terrain.Persistence,
+					JobCopy.Terrain.Lacunarity);
+				Height01[Y * ResX + X] = FMath::Clamp(N * 0.5f + 0.5f, 0.0f, 1.0f);
+			}
+		}
+
+		if (!ShouldCancel() && JobCopy.Terrain.bApplyErosion)
+		{
+			const int32 Passes = FMath::Max(JobCopy.Terrain.ThermalIterations, JobCopy.Terrain.HydraulicIterations) / 4;
+			WPEDirectorNoise::SimpleErosionPass(Height01, ResX, ResY, FMath::Clamp(Passes, 0, 32), ShouldCancel);
+		}
+
+		TArray<int32> Heights;
+		Heights.SetNumUninitialized(Count);
+		for (int32 I = 0; I < Count; ++I)
+		{
+			Heights[I] = static_cast<int32>(FMath::Clamp(Height01[I], 0.0f, 1.0f) * 65535.0f);
+		}
+
+		AsyncTask(ENamedThreads::GameThread, [WeakThis, WeakLandscape, Heights = MoveTemp(Heights), ResX, ResY, Token]() mutable
+		{
+			UWPEGenerationEditorSubsystem* Self = WeakThis.Get();
+			if (!Self || Self->GenerationToken != Token)
+			{
+				return;
+			}
+			if (Self->bCancelRequested.load())
+			{
+				Self->bGenerationRunning = false;
+				Self->LastStatus.Phase = EWPEGenerationPhase::Cancelled;
+				Self->LastStatus.bOk = false;
+				Self->LastStatus.Message = TEXT("Cancelled after worker");
+				return;
+			}
+			Self->LastStatus.Progress = 0.75f;
+			Self->ApplyGeneratedHeightsOnGameThread(MoveTemp(Heights), ResX, ResY, WeakLandscape);
+		});
+	});
+
+	OutError.Reset();
 	return true;
 }
