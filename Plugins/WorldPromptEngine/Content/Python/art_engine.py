@@ -522,16 +522,30 @@ def generate_heightmap_task(state: dict, params: dict):
             params_kit.setdefault("moisture", state.get("moisture", params.get("moisture", 0.5)))
             kit_summary = kit_library.arrange_kit_in_level(state, pixels, width, height, params_kit)
             state["last_kit_summary"] = kit_summary
-            # Fast HISM forest (collision off) — dense without per-actor lag
+            # Prefer native terrain-aware HISM; fall back to foliage_fast Python path.
             try:
-                import foliage_fast
+                import wpe_foliage_bridge
                 ff = dict(params_kit)
                 ff.setdefault("terrain_height_amp", float(params.get("terrain_height_amp", 1800.0)))
                 ff.setdefault("foliage_density", 1.25 if "rainforest" in str(params.get("archetype", "")) or "forest" in (params.get("prompt") or "").lower() else 1.0)
-                state["last_fast_foliage"] = foliage_fast.scatter_forest(
-                    state, pixels, width, height, ff)
+                state["last_fast_foliage"] = wpe_foliage_bridge.scatter_from_height_pixels(
+                    pixels, width, height, ff)
             except Exception as ff_e:
-                unreal.log_warning("WorldPromptEngine: fast foliage skipped: {}".format(ff_e))
+                try:
+                    import foliage_fast
+                    ff = dict(params_kit)
+                    ff.setdefault("terrain_height_amp", float(params.get("terrain_height_amp", 1800.0)))
+                    state["last_fast_foliage"] = foliage_fast.scatter_forest(
+                        state, pixels, width, height, ff)
+                except Exception as ff2_e:
+                    unreal.log_warning("WorldPromptEngine: fast foliage skipped: {} / {}".format(ff_e, ff2_e))
+            # Drive authored MPC params (snowline / rock / wetness) without rebuilding materials.
+            try:
+                import wpe_material_bridge
+                state["last_mpc"] = wpe_material_bridge.apply_world_params(
+                    snowline=0.72, rock_slope=0.55, wetness=float(params.get("moisture", 0.35) or 0.35))
+            except Exception as mpc_e:
+                unreal.log_warning("WorldPromptEngine: MPC bridge skipped: {}".format(mpc_e))
             # If no Fab kit, fill with BasicShapes proxies so demos aren't bare
             if not (kit_summary or {}).get("placed") and not (state.get("last_fast_foliage") or {}).get("instances"):
                 try:

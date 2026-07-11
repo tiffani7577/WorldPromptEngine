@@ -1,6 +1,9 @@
 #include "WPEGenerationEditorSubsystem.h"
 #include "WPEWorldGeneratorSubsystem.h"
+#include "WPEFoliageScatterSubsystem.h"
+#include "WPEMaterialBridge.h"
 #include "Landscape.h"
+#include "Engine/StaticMesh.h"
 #include "Async/Async.h"
 #include "Dom/JsonObject.h"
 #include "Serialization/JsonReader.h"
@@ -553,6 +556,63 @@ void UWPEGenerationEditorSubsystem::ApplyGeneratedHeightsOnGameThread(
 		LastStatus.Message = TEXT("ApplyHeightmapToLandscape rejected or failed");
 		LastStatus.Progress = 1.0f;
 		return;
+	}
+
+	// Cache 0..1 heights for terrain-aware foliage (same buffer family, no re-noise).
+	LastHeights01.SetNumUninitialized(Heights.Num());
+	for (int32 I = 0; I < Heights.Num(); ++I)
+	{
+		LastHeights01[I] = FMath::Clamp(Heights[I] / 65535.0f, 0.0f, 1.0f);
+	}
+	LastHeightResX = ResX;
+	LastHeightResY = ResY;
+
+	// MPC bridge — authored materials only.
+	if (LastJob.Material.MPCPath.Len() > 0)
+	{
+		UWPEMaterialBridge::ApplyWorldMPCParamsByPath(
+			Landscape,
+			LastJob.Material.MPCPath,
+			LastJob.Biome.Snowline,
+			LastJob.Biome.RockSlopeThreshold,
+			LastJob.Biome.Wetness,
+			LastJob.Material.MacroScale,
+			LastJob.Material.Tint);
+	}
+
+	// Terrain-aware HISM foliage when enabled.
+	if (LastJob.Foliage.bEnabled && LastJob.Foliage.bUseHISM)
+	{
+		LastStatus.Phase = EWPEGenerationPhase::PlacingFoliage;
+		LastStatus.Message = TEXT("Placing terrain-aware HISM foliage");
+		LastStatus.Progress = 0.95f;
+		if (UWPEFoliageScatterSubsystem* Foliage = GEngine->GetEngineSubsystem<UWPEFoliageScatterSubsystem>())
+		{
+			UStaticMesh* Mesh = LoadObject<UStaticMesh>(nullptr, TEXT("/Engine/BasicShapes/Cone.Cone"));
+			if (Mesh)
+			{
+				const float WorldSize = float(FMath::Max(ResX, ResY)) * 100.0f;
+				const FVector Origin(-0.5f * WorldSize, -0.5f * WorldSize, 0.0f);
+				const int32 Count = FMath::Clamp(int32(400.0f * LastJob.Foliage.Density), 40, 2500);
+				Foliage->ScatterTerrainAware(
+					Mesh,
+					LastHeights01,
+					ResX,
+					ResY,
+					Origin,
+					WorldSize,
+					1800.0f,
+					Count,
+					LastJob.Seed ^ 0xF011,
+					LastJob.Foliage.MaxSlopeDegrees,
+					LastJob.Foliage.MinAltitude01,
+					LastJob.Foliage.MaxAltitude01,
+					LastJob.Foliage.ClusterStrength,
+					0.75f,
+					1.6f,
+					true);
+			}
+		}
 	}
 
 	LastStatus.Phase = EWPEGenerationPhase::Completed;

@@ -84,4 +84,8 @@ private:
 	std::atomic<bool> bCancelRequested{false};
 	bool bGenerationRunning = false;
 	uint32 GenerationToken = 0;
+
+	TArray<float> LastHeights01;
+	int32 LastHeightResX = 0;
+	int32 LastHeightResY = 0;
 };
