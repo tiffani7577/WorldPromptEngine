@@ -1,10 +1,10 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.1.1",
-	"FriendlyName": "WorldPromptEngine",
-	"Description": "Natural-language world generation for UE 5.8. Python prompt/builder workflow. Optional C++ Source remains for native scale builds.",
-	"Category": "World Generation",
+	"VersionName": "1.2.0",
+	"FriendlyName": "World Prompt Engine",
+	"Description": "Natural-language world generation for UE 5.8. Python control plane + native Landscape/HISM Runtime module.",
+	"Category": "Editor",
 	"CreatedBy": "PrismaticLab",
 	"CreatedByURL": "",
 	"DocsURL": "",
@@ -15,6 +15,20 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
+	"Modules": [
+		{
+			"Name": "WorldPromptEngine",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"PlatformAllowList": [ "Win64", "Mac" ]
+		},
+		{
+			"Name": "WorldPromptEngineEditor",
+			"Type": "Editor",
+			"LoadingPhase": "PostEngineInit",
+			"PlatformAllowList": [ "Win64", "Mac" ]
+		}
+	],
 	"Plugins": [
 		{
 			"Name": "PythonScriptPlugin",

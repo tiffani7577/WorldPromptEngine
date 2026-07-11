@@ -3,140 +3,262 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>WorldPromptEngine</title>
+  <title>World Prompt — Easy Panel</title>
   <style>
     :root {
-      --bg: #12151a;
-      --panel: #1b2129;
-      --line: #2c3540;
-      --text: #e8eef5;
-      --muted: #9aa7b5;
-      --accent: #3d9cfd;
-      --accent-dim: #2a6fad;
-      --ok: #3ecf8e;
+      --bg: #0e1412;
+      --panel: #18201c;
+      --line: #2a3a32;
+      --text: #f2f6f3;
+      --muted: #9db0a6;
+      --accent: #5dce8a;
+      --accent-ink: #062012;
+      --warn: #e8c27a;
       --bad: #f07178;
+      --step: #24352c;
     }
     * { box-sizing: border-box; }
     body {
       margin: 0;
       min-height: 100vh;
-      font: 14px/1.45 "Segoe UI", system-ui, sans-serif;
+      font: 15px/1.5 "Avenir Next", "Segoe UI", system-ui, sans-serif;
       color: var(--text);
       background:
-        radial-gradient(1200px 600px at 10% -10%, #1e3a5f 0%, transparent 55%),
-        radial-gradient(900px 500px at 100% 0%, #243028 0%, transparent 50%),
+        radial-gradient(900px 500px at 0% 0%, #1a3328 0%, transparent 55%),
+        radial-gradient(700px 400px at 100% 10%, #2a2418 0%, transparent 45%),
         var(--bg);
     }
     main {
-      max-width: 640px;
-      margin: 40px auto;
-      padding: 24px;
-      background: color-mix(in srgb, var(--panel) 92%, black);
+      max-width: 560px;
+      margin: 28px auto;
+      padding: 28px 26px 32px;
+      background: color-mix(in srgb, var(--panel) 94%, black);
       border: 1px solid var(--line);
-      border-radius: 14px;
+      border-radius: 18px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.35);
     }
     h1 {
-      margin: 0 0 4px;
-      font-size: 22px;
-      letter-spacing: 0.02em;
+      margin: 0 0 6px;
+      font-size: 26px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
     }
-    .sub { color: var(--muted); margin-bottom: 20px; }
+    .sub {
+      color: var(--muted);
+      margin: 0 0 22px;
+      font-size: 14px;
+    }
+    .conn-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 10px 12px;
+      border-radius: 10px;
+      background: #101814;
+      border: 1px solid var(--line);
+      color: var(--muted);
+      font-size: 13px;
+    }
+    .dot {
+      width: 9px; height: 9px;
+      border-radius: 50%;
+      background: var(--bad);
+      flex: 0 0 auto;
+    }
+    .dot.on { background: var(--accent); box-shadow: 0 0 10px rgba(93,206,138,0.5); }
+
+    .step {
+      margin: 0 0 16px;
+      padding: 14px 14px 16px;
+      border-radius: 14px;
+      background: var(--step);
+      border: 1px solid var(--line);
+    }
+    .step-num {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 6px;
+    }
+    .step h2 {
+      margin: 0 0 8px;
+      font-size: 17px;
+      font-weight: 650;
+    }
+    .hint {
+      margin: 0 0 10px;
+      color: var(--muted);
+      font-size: 13px;
+    }
     label {
       display: block;
-      margin: 14px 0 6px;
+      margin: 10px 0 6px;
       color: var(--muted);
       font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.06em;
+      font-weight: 600;
     }
-    input, textarea {
+    input, textarea, select {
       width: 100%;
-      padding: 10px 12px;
-      border-radius: 8px;
+      padding: 12px 12px;
+      border-radius: 10px;
       border: 1px solid var(--line);
-      background: #0f1318;
+      background: #0c1210;
       color: var(--text);
       font: inherit;
     }
-    textarea { min-height: 88px; resize: vertical; }
-    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-    .actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 18px; }
-    button {
+    textarea { min-height: 96px; resize: vertical; }
+    .examples {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 10px;
+    }
+    .chip {
+      border: 1px solid var(--line);
+      background: #121a16;
+      color: var(--text);
+      border-radius: 999px;
+      padding: 6px 10px;
+      font-size: 12px;
+      cursor: pointer;
+    }
+    .chip:hover { border-color: var(--accent); color: var(--accent); }
+
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    details.advanced {
+      margin-top: 8px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+    details.advanced summary {
+      cursor: pointer;
+      color: var(--warn);
+      margin-bottom: 8px;
+    }
+
+    button.primary {
+      width: 100%;
       border: 0;
-      border-radius: 8px;
-      padding: 10px 14px;
+      border-radius: 12px;
+      padding: 14px 16px;
+      font: inherit;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      background: var(--accent);
+      color: var(--accent-ink);
+      margin-top: 4px;
+    }
+    button.primary:disabled { opacity: 0.45; cursor: not-allowed; }
+    button.secondary {
+      border: 1px solid var(--line);
+      background: #15201a;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 10px 12px;
       font: inherit;
       font-weight: 600;
       cursor: pointer;
-      background: var(--accent);
-      color: #061018;
     }
-    button.secondary {
-      background: #243040;
-      color: var(--text);
-      border: 1px solid var(--line);
+    button.secondary:disabled { opacity: 0.45; cursor: not-allowed; }
+    .actions-row {
+      display: flex;
+      gap: 8px;
+      margin-top: 10px;
     }
-    button:disabled { opacity: 0.5; cursor: not-allowed; }
     #status {
       margin-top: 16px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      background: #0f1318;
+      padding: 12px 14px;
+      border-radius: 12px;
+      background: #0c1210;
       border: 1px solid var(--line);
       color: var(--muted);
       white-space: pre-wrap;
-      min-height: 48px;
+      min-height: 52px;
+      font-size: 13px;
     }
-    #status.ok { color: var(--ok); border-color: #255c45; }
+    #status.ok { color: var(--accent); border-color: #2a5c40; }
     #status.bad { color: var(--bad); border-color: #5c2a30; }
-    .dot {
-      display: inline-block;
-      width: 8px; height: 8px;
-      border-radius: 50%;
-      margin-right: 8px;
-      background: var(--bad);
-      vertical-align: middle;
-    }
-    .dot.on { background: var(--ok); }
   </style>
 </head>
 <body>
   <main>
-    <h1>WorldPromptEngine</h1>
-    <p class="sub"><span id="dot" class="dot"></span><span id="conn">Connecting to Unreal…</span></p>
+    <h1>Create a world</h1>
+    <p class="sub">No Unreal expertise needed. Type what you want, then press the big green button.</p>
 
-    <label for="prompt">World prompt</label>
-    <textarea id="prompt" placeholder="misty alpine peaks at golden hour">misty alpine peaks at golden hour</textarea>
-
-    <div class="row">
-      <div>
-        <label for="folder">Folder name (optional)</label>
-        <input id="folder" placeholder="Forest_01" />
-      </div>
-      <div>
-        <label for="where">Where (optional)</label>
-        <input id="where" placeholder="Builds or /Game/Builds" />
-      </div>
+    <div class="conn-row">
+      <span id="dot" class="dot"></span>
+      <span id="conn">Looking for Unreal… keep the editor open.</span>
     </div>
 
-    <div class="row">
-      <div>
-        <label for="seed">Seed</label>
-        <input id="seed" type="number" value="1337" />
+    <section class="step">
+      <div class="step-num">Step 1</div>
+      <h2>Describe your world</h2>
+      <p class="hint">Say the place and the mood. Example: mountains + sunset.</p>
+      <label for="prompt">Your description</label>
+      <textarea id="prompt" placeholder="misty alpine peaks at golden hour">misty alpine peaks at golden hour</textarea>
+      <div class="examples">
+        <button type="button" class="chip" data-prompt="misty alpine peaks at golden hour">Alpine sunset</button>
+        <button type="button" class="chip" data-prompt="desert dunes under a blood moon">Desert night</button>
+        <button type="button" class="chip" data-prompt="swamp wetlands in dense fog">Foggy swamp</button>
+        <button type="button" class="chip" data-prompt="tropical islands at humid dawn">Tropical dawn</button>
       </div>
-      <div>
-        <label for="size">Size</label>
-        <input id="size" type="number" value="505" />
+    </section>
+
+    <section class="step">
+      <div class="step-num">Step 2</div>
+      <h2>Create it</h2>
+      <p class="hint">Unreal will build terrain, lighting, and props. Watch the 3D view.</p>
+      <button id="btnGenerate" class="primary" disabled>Create World</button>
+      <div class="actions-row">
+        <button id="btnStatus" class="secondary" disabled>Check connection</button>
       </div>
-    </div>
+      <p class="hint" style="margin-top:12px">Or one-click demos:</p>
+      <div class="examples">
+        <button type="button" class="chip" id="demoAlpine" disabled>Alpine Sunset</button>
+        <button type="button" class="chip" id="demoUnderwater" disabled>Underwater</button>
+        <button type="button" class="chip" id="demoDesert" disabled>Desert Moon</button>
+      </div>
+    </section>
 
-    <div class="actions">
-      <button id="btnGenerate" disabled>Generate world</button>
-      <button id="btnFolder" class="secondary" disabled>Use folder</button>
-      <button id="btnStatus" class="secondary" disabled>Status</button>
-    </div>
+    <section class="step">
+      <div class="step-num">Step 3 · optional</div>
+      <h2>Use your own Fab meshes</h2>
+      <p class="hint">In Unreal: Content Browser → select trees/rocks → Details on WorldPromptBuilder → “Use Selected Fab Meshes”. Then Create World again.</p>
+    </section>
 
-    <div id="status">Open Unreal with WorldPromptEngine loaded, then this panel connects automatically.</div>
+    <details class="advanced">
+      <summary>Advanced options (optional)</summary>
+      <div class="row">
+        <div>
+          <label for="seed">Random seed</label>
+          <input id="seed" type="number" value="1337" />
+        </div>
+        <div>
+          <label for="size">Map size</label>
+          <input id="size" type="number" value="505" />
+        </div>
+      </div>
+      <div class="row">
+        <div>
+          <label for="folder">Folder name</label>
+          <input id="folder" placeholder="Forest_01" />
+        </div>
+        <div>
+          <label for="where">Parent folder</label>
+          <input id="where" placeholder="Builds" />
+        </div>
+      </div>
+      <div class="actions-row">
+        <button id="btnFolder" class="secondary" disabled>Use folder</button>
+      </div>
+    </details>
+
+    <div id="status">Open your Unreal project (WorldPromptEngine). This panel connects by itself.</div>
   </main>
 
   <script>
@@ -152,16 +274,19 @@
     };
     const setConnected = (on) => {
       el("dot").className = "dot" + (on ? " on" : "");
-      el("conn").textContent = on ? "Connected to Unreal" : "Not connected — is the editor open?";
-      ["btnGenerate", "btnFolder", "btnStatus"].forEach((id) => {
-        el(id).disabled = !on;
+      el("conn").textContent = on
+        ? "Connected to Unreal — you are ready."
+        : "Not connected — is the WorldPromptEngine project open?";
+      ["btnGenerate", "btnFolder", "btnStatus", "demoAlpine", "demoUnderwater", "demoDesert"].forEach((id) => {
+        const node = el(id);
+        if (node) node.disabled = !on;
       });
     };
 
     function send(payload) {
       return new Promise((resolve, reject) => {
         if (!socket || socket.readyState !== WebSocket.OPEN) {
-          reject(new Error("Not connected"));
+          reject(new Error("Not connected to Unreal yet."));
           return;
         }
         const onMsg = (ev) => {
@@ -190,16 +315,14 @@
       }
       socket.addEventListener("open", () => {
         setConnected(true);
-        setStatus("Connected. Type a prompt and hit Generate world.", "ok");
+        setStatus("Ready. Press Create World when you like your description.", "ok");
       });
       socket.addEventListener("close", () => {
         setConnected(false);
-        setStatus("Disconnected from Unreal. Reconnecting…");
+        setStatus("Lost Unreal connection. Reconnecting…");
         scheduleReconnect();
       });
-      socket.addEventListener("error", () => {
-        setConnected(false);
-      });
+      socket.addEventListener("error", () => setConnected(false));
     }
 
     function scheduleReconnect() {
@@ -210,15 +333,50 @@
       }, 1500);
     }
 
+    document.querySelectorAll(".chip").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        el("prompt").value = btn.getAttribute("data-prompt");
+      });
+    });
+
+    async function runDemo(prompt, seed) {
+      el("prompt").value = prompt;
+      try {
+        setStatus("Creating demo world… watch Unreal.", "ok");
+        const size = Number(el("size").value) || 505;
+        const ack = await send({
+          action: "generate_from_prompt",
+          prompt,
+          params: {
+            width: size, height: size, seed,
+            use_hism: true, carve_splines: true, spawn_demo_fill: true, apply_erosion: true,
+          },
+        });
+        setStatus(
+          ack && ack.ok === false
+            ? ("Demo failed.\n" + JSON.stringify(ack))
+            : "Demo queued! Watch the Unreal viewport — terrain should change.",
+          ack && ack.ok === false ? "bad" : "ok"
+        );
+      } catch (e) {
+        setStatus(String(e), "bad");
+      }
+    }
+
+    el("demoAlpine").onclick = () => runDemo("misty alpine peaks at golden hour", 1337);
+    el("demoUnderwater").onclick = () => runDemo("underwater seafloor with kelp and sunken ruins", 42);
+    el("demoDesert").onclick = () => runDemo("desert dunes under a blood moon", 9001);
+
     el("btnGenerate").onclick = async () => {
       const prompt = el("prompt").value.trim();
       if (!prompt) {
-        setStatus("Enter a prompt first.", "bad");
+        setStatus("Type a world description in Step 1 first.", "bad");
         return;
       }
       const size = Number(el("size").value) || 505;
       const seed = Number(el("seed").value) || 1337;
       try {
+        setStatus("Creating your world… look at the Unreal 3D view.", "ok");
         const folder = el("folder").value.trim();
         const where = el("where").value.trim();
         if (folder) {
@@ -227,9 +385,13 @@
         const ack = await send({
           action: "generate_from_prompt",
           prompt,
-          params: { width: size, height: size, seed },
+          params: { width: size, height: size, seed, use_hism: true, carve_splines: true },
         });
-        setStatus("Queued:\n" + JSON.stringify(ack, null, 2), ack.ok ? "ok" : "bad");
+        if (ack && ack.ok === false) {
+          setStatus("Something went wrong. Try again, or click Show Status In Log on the builder.\n" + JSON.stringify(ack), "bad");
+        } else {
+          setStatus("World queued! Watch Unreal. Lighting, terrain, and props will update shortly.", "ok");
+        }
       } catch (e) {
         setStatus(String(e), "bad");
       }
@@ -238,7 +400,7 @@
     el("btnFolder").onclick = async () => {
       const folder = el("folder").value.trim();
       if (!folder) {
-        setStatus("Enter a folder name first.", "bad");
+        setStatus("Enter a folder name under Advanced first.", "bad");
         return;
       }
       try {
@@ -247,7 +409,7 @@
           folder,
           where: el("where").value.trim() || undefined,
         });
-        setStatus("Folder:\n" + JSON.stringify(ack, null, 2), ack.ok ? "ok" : "bad");
+        setStatus("Folder set.\n" + JSON.stringify(ack, null, 2), ack.ok ? "ok" : "bad");
       } catch (e) {
         setStatus(String(e), "bad");
       }
@@ -256,7 +418,7 @@
     el("btnStatus").onclick = async () => {
       try {
         const ack = await send({ action: "content_status" });
-        setStatus("Status command queued.\n" + JSON.stringify(ack, null, 2), ack.ok ? "ok" : "bad");
+        setStatus("Still connected. Status sent to Unreal.\n" + JSON.stringify(ack, null, 2), "ok");
       } catch (e) {
         setStatus(String(e), "bad");
       }

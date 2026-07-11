@@ -7,16 +7,23 @@ Hybrid **C++ + Python** natural-language world generation for **Unreal Engine 5.
 
 You are not limited to Python-sized maps.
 
-## How to use (easiest — like Base-X)
+## How to use (UE 5.8)
 
-1. Open `WorldPromptEngine.uproject` in **UE 5.8**
-2. If it asks to build the editor, click **No**
-3. Wait for Output Log: `WorldPromptEngine: online`
-4. **Tools → World Prompt Engine → Place Builder In Level**
-5. Select **WorldPromptBuilder** → set **Prompt Text** → **Generate World**
+1. Open `WorldPromptEngine.uproject` — **allow the editor to compile** (C++ Landscape spike is enabled).
+2. Wait for Output Log: `WPEWorldGeneratorSubsystem online`
+3. **Tools → World Prompt Engine → Place Builder In Level**
+4. Select **WorldPromptBuilder** → set **Prompt Text** → **Generate World**
 
-### If Unreal asks to build the editor
-Click **No**. The plugin runs in Python today. Optional C++ sources are parked in `Native/Source/` for a later native build.
+### Stage 1 spike validation (native Landscape)
+
+After a successful editor build, in the Python console:
+
+```python
+import wpe_stage1_validate
+wpe_stage1_validate.main()
+```
+
+Gates: **G-01** compile · **G-02** size reject · **G-03** viewport reshape · **G-04** physics drop.
 
 ### Huge worlds (native C++)
 

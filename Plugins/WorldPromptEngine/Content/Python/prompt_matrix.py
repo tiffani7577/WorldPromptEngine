@@ -171,6 +171,15 @@ TERRAIN_ARCHETYPES = {
         "pcg_tags": ["seagrass", "rock_beach", "lilypad"],
         "structure_tags": ["coral_stack", "dock_pier", "temple_ruin"],
     },
+    "underwater_seafloor": {
+        "keywords": {
+            "underwater": 5, "submerged": 4, "seafloor": 4, "aquatic": 3,
+            "sunken": 3, "atlantis": 3, "abyss": 2, "kelp": 2, "trench": 2,
+        },
+        "noise": {"octaves": 5, "frequency": 0.0028, "persistence": 0.48, "lacunarity": 2.0, "amplitude": 0.32},
+        "pcg_tags": ["seagrass", "rock_coastal", "rock_small", "coral"],
+        "structure_tags": ["shipwreck", "coral_stack", "temple_ruin", "arch_rock"],
+    },
     "floating_isles": {
         "keywords": {"floating": 3, "sky": 2, "isles": 3, "airborne": 2, "levitating": 2, "aether": 2},
         "noise": {"octaves": 6, "frequency": 0.0038, "persistence": 0.58, "lacunarity": 2.3, "amplitude": 0.85},
@@ -208,6 +217,7 @@ ARCHETYPE_STRUCTURE_TAGS = {
     "enchanted_forest": ["wizard_tower", "stone_circle", "crystal_spire", "totem"],
     "obsidian_wastes": ["lava_spine", "portal_ring", "obelisk", "ruined_tower"],
     "coral_shallows": ["coral_stack", "dock_pier", "temple_ruin", "shipwreck"],
+    "underwater_seafloor": ["shipwreck", "coral_stack", "temple_ruin", "arch_rock"],
     "floating_isles": ["floating_boulder", "crystal_spire", "portal_ring", "wizard_tower"],
 }
 
@@ -345,10 +355,19 @@ WEATHER_PRESETS = {
         "cloud_coverage": 0.35, "sky_rayleigh": 1.35, "exposure_bias": 0.25,
     },
     "deep_ocean_dark": {
-        "keywords": {"abyss": 3, "underdark": 2, "deepsea": 3},
+        "keywords": {"abyss": 3, "underdark": 2, "deepsea": 3, "trench": 2},
         "sun_intensity": 0.2, "sun_color": (0.2, 0.35, 0.7), "sun_pitch": -80.0, "sun_yaw": 10.0,
         "fog_density": 0.12, "fog_height_falloff": 0.2, "fog_color": (0.05, 0.1, 0.2),
         "cloud_coverage": 0.7, "sky_rayleigh": 0.35, "exposure_bias": 1.6,
+    },
+    "underwater_teal": {
+        "keywords": {
+            "underwater": 5, "submerged": 4, "aquatic": 3, "seafloor": 3,
+            "sunken": 3, "kelp": 2, "atlantis": 2,
+        },
+        "sun_intensity": 2.0, "sun_color": (0.3, 0.75, 0.9), "sun_pitch": -55.0, "sun_yaw": 25.0,
+        "fog_density": 0.09, "fog_height_falloff": 0.07, "fog_color": (0.04, 0.32, 0.42),
+        "cloud_coverage": 0.15, "sky_rayleigh": 0.55, "exposure_bias": 0.55,
     },
     "cherry_blossom": {
         "keywords": {"cherry": 3, "blossom": 3, "sakura": 3, "spring": 2},
@@ -485,20 +504,67 @@ def parse_prompt(prompt: str) -> dict:
     try:
         tokens = [t.strip(".,!?;:'\"()-").lower() for t in prompt.split()]
         tokens = [t for t in tokens if t]
+        prompt_l = (prompt or "").lower()
+
+        # Phrase boosts (multi-word prompts like "under water land")
+        phrase_arch = []
+        phrase_weather = []
+        try:
+            import underwater_world
+            if underwater_world.prompt_wants_underwater(prompt_l):
+                phrase_arch.append(("underwater_seafloor", 12))
+                phrase_weather.append(("underwater_teal", 12))
+        except Exception:
+            if "underwater" in prompt_l or ("under" in tokens and "water" in tokens):
+                phrase_arch.append(("underwater_seafloor", 12))
+                phrase_weather.append(("underwater_teal", 12))
+
+        if "blood moon" in prompt_l or "bloodmoon" in prompt_l:
+            phrase_weather.append(("blood_moon", 10))
+        if "golden hour" in prompt_l:
+            phrase_weather.append(("golden_hour", 10))
+        if "desert" in tokens and ("dune" in tokens or "dunes" in tokens):
+            phrase_arch.append(("desert_dunes", 8))
 
         best_arch, best_arch_score = DEFAULT_ARCHETYPE, 0
         for name, spec in TERRAIN_ARCHETYPES.items():
             s = _score_tokens(tokens, spec["keywords"])
             if s > best_arch_score:
                 best_arch, best_arch_score = name, s
+        for name, bonus in phrase_arch:
+            if name in TERRAIN_ARCHETYPES and best_arch_score < bonus:
+                best_arch, best_arch_score = name, bonus
+            elif name in TERRAIN_ARCHETYPES:
+                # still prefer if close
+                if name == "underwater_seafloor":
+                    best_arch, best_arch_score = name, max(best_arch_score, bonus)
 
         best_weather, best_weather_score = DEFAULT_WEATHER, 0
         for name, spec in WEATHER_PRESETS.items():
             s = _score_tokens(tokens, spec["keywords"])
             if s > best_weather_score:
                 best_weather, best_weather_score = name, s
+        for name, bonus in phrase_weather:
+            if name in WEATHER_PRESETS:
+                best_weather, best_weather_score = name, max(best_weather_score, bonus)
 
         arch = TERRAIN_ARCHETYPES[best_arch]
+        # Secondary biomes for regional Voronoi masks
+        biome_scores = []
+        for name, spec in TERRAIN_ARCHETYPES.items():
+            s = _score_tokens(tokens, spec["keywords"])
+            if s > 0:
+                biome_scores.append((s, name))
+        biome_scores.sort(reverse=True)
+        biomes = []
+        for _, n in biome_scores:
+            if n not in biomes:
+                biomes.append(n)
+            if len(biomes) >= 4:
+                break
+        if best_arch not in biomes:
+            biomes.insert(0, best_arch)
+
         result = {
             "archetype": best_arch,
             "archetype_score": best_arch_score,
@@ -508,6 +574,7 @@ def parse_prompt(prompt: str) -> dict:
             "pcg_tags": list(arch["pcg_tags"]),
             "structure_tags": list(arch.get("structure_tags") or ARCHETYPE_STRUCTURE_TAGS.get(best_arch, [])),
             "weather_config": dict(WEATHER_PRESETS[best_weather]),
+            "biomes": biomes[:4],
         }
         try:
             import structure_library
