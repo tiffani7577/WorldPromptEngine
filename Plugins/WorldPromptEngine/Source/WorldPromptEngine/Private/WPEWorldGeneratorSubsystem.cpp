@@ -219,6 +219,9 @@ bool UWPEWorldGeneratorSubsystem::ApplyHeightmapToLandscape(
 		}
 	});
 
+	// Ensure proxy-level collision components are fully rebuilt for PIE / traces (G-04).
+	LandscapeInfo->RecreateCollisionComponents();
+
 	const double ElapsedTimeMs = (FPlatformTime::Seconds() - StartTime) * 1000.0;
 	UE_LOG(LogTemp, Log, TEXT("WPE: Native heightfield apply phase resolved flawlessly in %.2f ms."), ElapsedTimeMs);
 	return true;
