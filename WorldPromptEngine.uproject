@@ -2,7 +2,14 @@
 	"FileVersion": 3,
 	"EngineAssociation": "5.8",
 	"Category": "World Generation",
-	"Description": "Host project for the WorldPromptEngine natural-language procedural world generation plugin.",
+	"Description": "Hybrid C++/Python WorldPromptEngine host for huge World Partition worlds.",
+	"Modules": [
+		{
+			"Name": "WorldPromptEngineHost",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		}
+	],
 	"Plugins": [
 		{
 			"Name": "WorldPromptEngine",

@@ -145,6 +145,31 @@ TERRAIN_ARCHETYPES = {
                   "terrace_steps": 12},
         "pcg_tags": ["bamboo", "grass_wet", "stone_wall"],
     },
+    "archipelago": {
+        "keywords": {"archipelago": 3, "islands": 2, "chain": 1, "scattered": 1},
+        "noise": {"octaves": 5, "frequency": 0.003, "persistence": 0.55, "lacunarity": 2.1, "amplitude": 0.6},
+        "pcg_tags": ["palm", "rock_beach", "seagrass"],
+    },
+    "bamboo_highlands": {
+        "keywords": {"bamboo": 3, "highlands": 2, "asian": 1},
+        "noise": {"octaves": 5, "frequency": 0.0024, "persistence": 0.5, "lacunarity": 2.0, "amplitude": 0.55},
+        "pcg_tags": ["bamboo", "rock_limestone", "fern_tropical"],
+    },
+    "enchanted_forest": {
+        "keywords": {"enchanted": 3, "fairy": 2, "magic": 2, "mystical": 2, "glowing": 1},
+        "noise": {"octaves": 6, "frequency": 0.0025, "persistence": 0.52, "lacunarity": 2.0, "amplitude": 0.48},
+        "pcg_tags": ["oak", "fern_giant", "moss_hang", "wildflower"],
+    },
+    "obsidian_wastes": {
+        "keywords": {"obsidian": 3, "blackglass": 2, "glassland": 2},
+        "noise": {"octaves": 6, "frequency": 0.0045, "persistence": 0.6, "lacunarity": 2.3, "amplitude": 0.7},
+        "pcg_tags": ["rock_volcanic", "rock_scorched", "ember_vent"],
+    },
+    "coral_shallows": {
+        "keywords": {"coral": 3, "reef": 3, "shallow": 2, "turquoise": 2},
+        "noise": {"octaves": 3, "frequency": 0.002, "persistence": 0.4, "lacunarity": 1.8, "amplitude": 0.12},
+        "pcg_tags": ["seagrass", "rock_beach", "lilypad"],
+    },
 }
 
 DEFAULT_ARCHETYPE = "rolling_hills"
@@ -230,6 +255,72 @@ WEATHER_PRESETS = {
         "fog_density": 0.045, "fog_height_falloff": 0.1, "fog_color": (0.88, 0.82, 0.78),
         "cloud_coverage": 0.3, "sky_rayleigh": 1.2, "exposure_bias": 0.25,
     },
+    "ashfall": {
+        "keywords": {"ash": 3, "ashfall": 3, "volcanic": 1, "smog": 2},
+        "sun_intensity": 2.0, "sun_color": (0.75, 0.55, 0.4), "sun_pitch": -40.0, "sun_yaw": 100.0,
+        "fog_density": 0.14, "fog_height_falloff": 0.09, "fog_color": (0.45, 0.4, 0.35),
+        "cloud_coverage": 0.9, "sky_rayleigh": 1.3, "exposure_bias": 0.45,
+    },
+    "heat_haze": {
+        "keywords": {"heat": 3, "scorching": 3, "swelter": 2, "mirage": 2},
+        "sun_intensity": 12.0, "sun_color": (1.0, 0.92, 0.7), "sun_pitch": -75.0, "sun_yaw": 20.0,
+        "fog_density": 0.035, "fog_height_falloff": 0.05, "fog_color": (0.9, 0.8, 0.55),
+        "cloud_coverage": 0.05, "sky_rayleigh": 1.5, "exposure_bias": -0.1,
+    },
+    "twilight_blue": {
+        "keywords": {"twilight": 3, "bluehour": 3, "evening": 2},
+        "sun_intensity": 1.8, "sun_color": (0.45, 0.55, 0.95), "sun_pitch": -4.0, "sun_yaw": 280.0,
+        "fog_density": 0.03, "fog_height_falloff": 0.18, "fog_color": (0.25, 0.3, 0.5),
+        "cloud_coverage": 0.4, "sky_rayleigh": 0.9, "exposure_bias": 0.8,
+    },
+    "nuclear_winter": {
+        "keywords": {"nuclear": 3, "winter": 1, "fallout": 3, "irradiated": 2},
+        "sun_intensity": 0.8, "sun_color": (0.7, 0.75, 0.65), "sun_pitch": -30.0, "sun_yaw": 160.0,
+        "fog_density": 0.2, "fog_height_falloff": 0.07, "fog_color": (0.55, 0.58, 0.45),
+        "cloud_coverage": 1.0, "sky_rayleigh": 0.4, "exposure_bias": 0.7,
+    },
+    "carnival_neon": {
+        "keywords": {"neon": 3, "cyber": 2, "synth": 2, "electric": 2},
+        "sun_intensity": 0.4, "sun_color": (0.7, 0.3, 1.0), "sun_pitch": -25.0, "sun_yaw": 200.0,
+        "fog_density": 0.07, "fog_height_falloff": 0.12, "fog_color": (0.25, 0.1, 0.35),
+        "cloud_coverage": 0.5, "sky_rayleigh": 0.5, "exposure_bias": 1.2,
+    },
+    "monsoon_green": {
+        "keywords": {"monsoon": 3, "humid": 2, "tropicalstorm": 2},
+        "sun_intensity": 2.5, "sun_color": (0.65, 0.8, 0.7), "sun_pitch": -48.0, "sun_yaw": 70.0,
+        "fog_density": 0.1, "fog_height_falloff": 0.11, "fog_color": (0.45, 0.6, 0.5),
+        "cloud_coverage": 0.95, "sky_rayleigh": 0.85, "exposure_bias": 0.4,
+    },
+    "crystal_glow": {
+        "keywords": {"crystal": 1, "glow": 2, "bioluminescent": 3, "luminous": 2},
+        "sun_intensity": 0.6, "sun_color": (0.4, 0.9, 1.0), "sun_pitch": -35.0, "sun_yaw": 40.0,
+        "fog_density": 0.04, "fog_height_falloff": 0.16, "fog_color": (0.15, 0.35, 0.4),
+        "cloud_coverage": 0.25, "sky_rayleigh": 0.55, "exposure_bias": 1.4,
+    },
+    "dust_golden": {
+        "keywords": {"dusty": 2, "golddust": 3, "amberdust": 2},
+        "sun_intensity": 6.0, "sun_color": (1.0, 0.78, 0.4), "sun_pitch": -28.0, "sun_yaw": 140.0,
+        "fog_density": 0.09, "fog_height_falloff": 0.08, "fog_color": (0.85, 0.65, 0.35),
+        "cloud_coverage": 0.35, "sky_rayleigh": 1.35, "exposure_bias": 0.25,
+    },
+    "deep_ocean_dark": {
+        "keywords": {"abyss": 3, "underdark": 2, "deepsea": 3},
+        "sun_intensity": 0.2, "sun_color": (0.2, 0.35, 0.7), "sun_pitch": -80.0, "sun_yaw": 10.0,
+        "fog_density": 0.12, "fog_height_falloff": 0.2, "fog_color": (0.05, 0.1, 0.2),
+        "cloud_coverage": 0.7, "sky_rayleigh": 0.35, "exposure_bias": 1.6,
+    },
+    "cherry_blossom": {
+        "keywords": {"cherry": 3, "blossom": 3, "sakura": 3, "spring": 2},
+        "sun_intensity": 5.5, "sun_color": (1.0, 0.9, 0.92), "sun_pitch": -50.0, "sun_yaw": 50.0,
+        "fog_density": 0.025, "fog_height_falloff": 0.15, "fog_color": (0.95, 0.85, 0.9),
+        "cloud_coverage": 0.25, "sky_rayleigh": 1.1, "exposure_bias": 0.15,
+    },
+    "ember_night": {
+        "keywords": {"ember": 3, "embers": 3, "fireflies": 2, "campfire": 1},
+        "sun_intensity": 0.15, "sun_color": (1.0, 0.45, 0.15), "sun_pitch": -20.0, "sun_yaw": 300.0,
+        "fog_density": 0.05, "fog_height_falloff": 0.14, "fog_color": (0.25, 0.12, 0.08),
+        "cloud_coverage": 0.3, "sky_rayleigh": 0.45, "exposure_bias": 1.3,
+    },
 }
 
 DEFAULT_WEATHER = "clear_noon"
@@ -277,7 +368,7 @@ def parse_prompt(prompt: str) -> dict:
                 best_weather, best_weather_score = name, s
 
         arch = TERRAIN_ARCHETYPES[best_arch]
-        return {
+        result = {
             "archetype": best_arch,
             "archetype_score": best_arch_score,
             "weather": best_weather,
@@ -286,6 +377,13 @@ def parse_prompt(prompt: str) -> dict:
             "pcg_tags": list(arch["pcg_tags"]),
             "weather_config": dict(WEATHER_PRESETS[best_weather]),
         }
+        try:
+            import structure_library
+            result["structures"] = structure_library.resolve_structures(
+                best_arch, prompt)
+        except Exception:
+            result["structures"] = []
+        return result
     except Exception as e:
         unreal.log_error("prompt_matrix.parse_prompt failed: {}".format(e))
         return {

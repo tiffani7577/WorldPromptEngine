@@ -18,7 +18,10 @@ import unreal
 
 import art_engine
 import content_library
+import editor_menu
+import native_bridge
 import utility_bridge
+import world_builder_actor
 
 
 # ---------------------------------------------------------------------------
@@ -40,6 +43,9 @@ GLOBAL_STATE = {
     "pcg_spawn_table": [],          # resolved asset_manifest entries
     "last_slope_map": None,         # per-pixel material layer indices
     "slope_layer_names": [],
+    "structure_plan": [],           # resolved structure types for last prompt
+    "structure_actors": [],         # spawned structure actors
+    "last_structure_summary": None,
 }
 
 _TICK_HANDLE = None
@@ -218,6 +224,86 @@ def content_status() -> dict:
         return {}
 
 
+def place_builder():
+    """
+    Drop a WorldPromptBuilder into the level (Base-X style).
+
+    Select it → Details → type prompt → click Generate World.
+    Also available: Tools → World Prompt Engine → Place Builder In Level
+    """
+    try:
+        return world_builder_actor.place_builder()
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.place_builder failed: {}".format(e))
+        return None
+
+
+def build_huge_world(extent_km: float = 16.0):
+    """
+    Native C++ path: plan a World Partition-scale tiled world.
+
+      init_unreal.build_huge_world(64)  # 64km
+    """
+    try:
+        result = native_bridge.build_world_plan(extent_km=extent_km)
+        unreal.log("WorldPromptEngine huge plan: {}".format(result))
+        return result
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.build_huge_world failed: {}".format(e))
+        return {"ok": False, "error": str(e)}
+
+
+def open_ui():
+    """
+    Open the clickable WorldPromptEngine control panel in your browser.
+
+    Easier than the Python console — type a prompt, click Generate.
+    Unreal must stay open so the panel can talk to ws://127.0.0.1:3001.
+    """
+    import os
+    try:
+        import webbrowser
+    except Exception:
+        webbrowser = None
+
+    candidates = []
+    try:
+        here = os.path.dirname(os.path.abspath(__file__))
+        candidates.append(os.path.join(here, "wpe_panel.html"))
+    except Exception:
+        pass
+    try:
+        if hasattr(unreal, "Paths") and hasattr(unreal.Paths, "project_dir"):
+            candidates.append(os.path.join(
+                unreal.Paths.project_dir(), "tools", "wpe_panel.html"))
+    except Exception:
+        pass
+
+    path = None
+    for c in candidates:
+        if c and os.path.isfile(c):
+            path = c
+            break
+
+    if not path:
+        unreal.log_error("WorldPromptEngine.open_ui: wpe_panel.html not found")
+        return {"ok": False, "error": "wpe_panel.html not found"}
+
+    url = "file://" + path.replace(" ", "%20")
+    try:
+        if webbrowser is not None:
+            webbrowser.open(url)
+        elif hasattr(unreal, "SystemLibrary"):
+            # fallback: log the path for manual open
+            pass
+        unreal.log("WorldPromptEngine: opened UI -> {}".format(path))
+        unreal.log("WorldPromptEngine: keep the editor open; panel uses ws://127.0.0.1:3001")
+        return {"ok": True, "path": path, "url": url}
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.open_ui failed: {}".format(e))
+        return {"ok": False, "error": str(e), "path": path}
+
+
 def status() -> dict:
     """Return a snapshot of engine state for debugging."""
     try:
@@ -254,10 +340,15 @@ def _boot():
         cfg = content_library.load_config()
         if cfg.get("auto_setup_on_boot", True):
             content_library.setup_content()
+        editor_menu.register_menus()
+        # Touch the uclass so Unreal registers WorldPromptBuilder for spawning
+        _ = world_builder_actor.WorldPromptBuilder
         unreal.log(
-            "WorldPromptEngine: online. content_root={} | ws://127.0.0.1:{} | "
-            "console: init_unreal.setup_content() / init_unreal.prompt(...)".format(
-                content_library.content_root(), utility_bridge.WS_PORT))
+            "WorldPromptEngine: online. EASIEST → Tools → World Prompt Engine → Place Builder In Level. "
+            "NATIVE SCALE → {} | content_root={} | ws://127.0.0.1:{}".format(
+                native_bridge.scale_summary(),
+                content_library.content_root(),
+                utility_bridge.WS_PORT))
     except Exception as e:
         unreal.log_error("WorldPromptEngine._boot failed: {}".format(e))
 

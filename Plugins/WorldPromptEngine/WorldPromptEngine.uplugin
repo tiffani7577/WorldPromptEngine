@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
 	"Version": 1,
-	"VersionName": "1.0.0",
+	"VersionName": "1.1.0",
 	"FriendlyName": "WorldPromptEngine",
-	"Description": "Natural language procedural world generation for Unreal Engine 5.8. Generates landscapes, heightmaps, and PCG-driven scatter from text prompts via a thread-safe WebSocket command bridge.",
+	"Description": "Hybrid native+Python world generation for UE 5.8. C++ tile/scale core for huge World Partition worlds; Python prompt UI and content workflow.",
 	"Category": "World Generation",
 	"CreatedBy": "PrismaticLab",
 	"CreatedByURL": "",
@@ -15,6 +15,18 @@
 	"IsBetaVersion": false,
 	"IsExperimentalVersion": false,
 	"Installed": false,
+	"Modules": [
+		{
+			"Name": "WorldPromptEngine",
+			"Type": "Runtime",
+			"LoadingPhase": "Default"
+		},
+		{
+			"Name": "WorldPromptEngineEditor",
+			"Type": "Editor",
+			"LoadingPhase": "Default"
+		}
+	],
 	"Plugins": [
 		{
 			"Name": "PythonScriptPlugin",
