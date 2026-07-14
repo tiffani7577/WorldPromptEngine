@@ -852,6 +852,42 @@ def execute_command(state: dict, command):
         elif action == "content_status":
             import content_library
             state["last_content_status"] = content_library.content_status()
+        elif action == "generate_world":
+            # Dashboard-shaped payload: {"payload": {prompt, map_size, roughness, foliage_density}}
+            p = payload.get("payload") or payload.get("params") or {}
+            forwarded = {
+                "action": "generate_from_prompt",
+                "prompt": p.get("prompt", ""),
+                "params": {
+                    "width": min(1009, max(127, int(p.get("map_size", 505)))),
+                    "height": min(1009, max(127, int(p.get("map_size", 505)))),
+                    "roughness": float(p.get("roughness", 0.5)),
+                    "foliage_density": float(p.get("foliage_density", 0.5)),
+                },
+            }
+            execute_command(state, forwarded)
+        elif action == "save_world":
+            import world_library
+            name = payload.get("world_name") or (payload.get("params") or {}).get("world_name") or "Untitled"
+            state["last_world_save_ok"] = world_library.save_world(name, state)
+        elif action == "get_world_library":
+            import world_library
+            state["last_world_library"] = world_library.load_world_library()
+            unreal.log("WorldPromptEngine: world library has {} entries".format(
+                len(state["last_world_library"])))
+        elif action == "trigger_next_world":
+            import performance_engine
+            performance_engine.load_next_world()
+        elif action == "set_live_param":
+            import performance_engine
+            p = payload.get("params") or payload
+            performance_engine.set_live_param(p.get("param_name", ""), p.get("value", 0.0))
+        elif action == "load_setlist":
+            import performance_engine
+            performance_engine.load_setlist(payload.get("name") or (payload.get("params") or {}).get("name", ""))
+        elif action == "save_setlist":
+            import performance_engine
+            performance_engine.save_setlist(payload.get("name") or (payload.get("params") or {}).get("name", ""))
         else:
             unreal.log_warning("WorldPromptEngine: unknown action '{}'".format(action))
     except Exception as e:

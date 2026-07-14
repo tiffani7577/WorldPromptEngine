@@ -1061,5 +1061,1927 @@
       "portal_ring",
       "wizard_tower"
     ]
-  }
+  },
+  "foliage": [
+    {
+      "display_name": "Oak Tree",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Foliage/SM_OakTree",
+      "scale_min": 0.8,
+      "scale_max": 1.6,
+      "density_per_sqkm": 900,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 28,
+      "exclusion_radius_cm": 600,
+      "biome_affinity": [
+        "rolling_hills",
+        "enchanted_forest",
+        "highland_moors",
+        "terraced_valleys"
+      ]
+    },
+    {
+      "display_name": "Pine Tree",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Foliage/SM_PineTree",
+      "scale_min": 0.9,
+      "scale_max": 1.8,
+      "density_per_sqkm": 1400,
+      "altitude_bands": [
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 35,
+      "exclusion_radius_cm": 450,
+      "biome_affinity": [
+        "alpine_peaks",
+        "redwood_forest",
+        "steppe_ridges",
+        "fjord_valleys"
+      ]
+    },
+    {
+      "display_name": "Palm Tree",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Foliage/SM_PalmTree",
+      "scale_min": 0.9,
+      "scale_max": 1.5,
+      "density_per_sqkm": 500,
+      "altitude_bands": [
+        "lowland"
+      ],
+      "slope_max_degrees": 15,
+      "exclusion_radius_cm": 700,
+      "biome_affinity": [
+        "tropical_islands",
+        "archipelago",
+        "coral_shallows",
+        "savanna_plains"
+      ]
+    },
+    {
+      "display_name": "Dead Tree",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Foliage/SM_DeadTree",
+      "scale_min": 0.7,
+      "scale_max": 1.4,
+      "density_per_sqkm": 180,
+      "altitude_bands": [
+        "lowland",
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 30,
+      "exclusion_radius_cm": 900,
+      "biome_affinity": [
+        "volcanic_badlands",
+        "crater_wastes",
+        "obsidian_wastes",
+        "salt_flats",
+        "swamp_wetlands"
+      ]
+    },
+    {
+      "display_name": "Fern Cluster",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Foliage/SM_FernCluster",
+      "scale_min": 0.6,
+      "scale_max": 1.3,
+      "density_per_sqkm": 6000,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 40,
+      "exclusion_radius_cm": 120,
+      "biome_affinity": [
+        "dense_rainforest",
+        "redwood_forest",
+        "enchanted_forest",
+        "swamp_wetlands"
+      ]
+    },
+    {
+      "display_name": "Grass Tuft",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Foliage/SM_GrassTuft",
+      "scale_min": 0.5,
+      "scale_max": 1.2,
+      "density_per_sqkm": 25000,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 35,
+      "exclusion_radius_cm": 40,
+      "biome_affinity": [
+        "rolling_hills",
+        "savanna_plains",
+        "highland_moors",
+        "steppe_ridges",
+        "terraced_valleys"
+      ]
+    },
+    {
+      "display_name": "Bamboo Stalk",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Foliage/SM_BambooStalk",
+      "scale_min": 0.8,
+      "scale_max": 1.7,
+      "density_per_sqkm": 4000,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 30,
+      "exclusion_radius_cm": 150,
+      "biome_affinity": [
+        "bamboo_highlands",
+        "dense_rainforest",
+        "karst_towers"
+      ]
+    },
+    {
+      "display_name": "Willow Tree",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Foliage/SM_WillowTree",
+      "scale_min": 0.9,
+      "scale_max": 1.6,
+      "density_per_sqkm": 300,
+      "altitude_bands": [
+        "lowland"
+      ],
+      "slope_max_degrees": 12,
+      "exclusion_radius_cm": 800,
+      "biome_affinity": [
+        "swamp_wetlands",
+        "terraced_valleys",
+        "rolling_hills"
+      ]
+    },
+    {
+      "display_name": "Jungle Canopy Tree",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Foliage/SM_JungleCanopy",
+      "scale_min": 1.2,
+      "scale_max": 2.2,
+      "density_per_sqkm": 1100,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 32,
+      "exclusion_radius_cm": 700,
+      "biome_affinity": [
+        "dense_rainforest",
+        "tropical_islands",
+        "karst_towers"
+      ]
+    },
+    {
+      "display_name": "Snow Pine",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Foliage/SM_SnowPine",
+      "scale_min": 0.9,
+      "scale_max": 1.7,
+      "density_per_sqkm": 800,
+      "altitude_bands": [
+        "highland",
+        "alpine"
+      ],
+      "slope_max_degrees": 38,
+      "exclusion_radius_cm": 500,
+      "biome_affinity": [
+        "alpine_peaks",
+        "glacier_fields",
+        "tundra_flats",
+        "fjord_valleys"
+      ]
+    }
+  ],
+  "rocks": [
+    {
+      "display_name": "Boulder Large",
+      "rock_category": "boulder",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Rocks/SM_BoulderLarge",
+      "scale_min": 1.0,
+      "scale_max": 2.5,
+      "density_per_sqkm": 90,
+      "altitude_bands": [
+        "midland",
+        "highland",
+        "alpine"
+      ],
+      "slope_max_degrees": 50,
+      "exclusion_radius_cm": 1200,
+      "biome_affinity": [
+        "alpine_peaks",
+        "canyon_mesas",
+        "steppe_ridges",
+        "highland_moors"
+      ]
+    },
+    {
+      "display_name": "Boulder Small",
+      "rock_category": "boulder",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Rocks/SM_BoulderSmall",
+      "scale_min": 0.5,
+      "scale_max": 1.2,
+      "density_per_sqkm": 700,
+      "altitude_bands": [
+        "lowland",
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 55,
+      "exclusion_radius_cm": 300,
+      "biome_affinity": [
+        "rolling_hills",
+        "alpine_peaks",
+        "coastal_cliffs",
+        "crater_wastes"
+      ]
+    },
+    {
+      "display_name": "Cliff Face Shard",
+      "rock_category": "cliff",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Rocks/SM_CliffShard",
+      "scale_min": 1.5,
+      "scale_max": 3.5,
+      "density_per_sqkm": 40,
+      "altitude_bands": [
+        "highland",
+        "alpine",
+        "peak"
+      ],
+      "slope_max_degrees": 85,
+      "exclusion_radius_cm": 2000,
+      "biome_affinity": [
+        "coastal_cliffs",
+        "fjord_valleys",
+        "alpine_peaks",
+        "karst_towers"
+      ]
+    },
+    {
+      "display_name": "Volcanic Rock",
+      "rock_category": "volcanic",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Rocks/SM_VolcanicRock",
+      "scale_min": 0.6,
+      "scale_max": 1.8,
+      "density_per_sqkm": 500,
+      "altitude_bands": [
+        "lowland",
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 45,
+      "exclusion_radius_cm": 350,
+      "biome_affinity": [
+        "volcanic_badlands",
+        "crater_wastes",
+        "obsidian_wastes"
+      ]
+    },
+    {
+      "display_name": "Sandstone Column",
+      "rock_category": "column",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Rocks/SM_SandstoneColumn",
+      "scale_min": 1.2,
+      "scale_max": 3.0,
+      "density_per_sqkm": 25,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 20,
+      "exclusion_radius_cm": 3000,
+      "biome_affinity": [
+        "desert_dunes",
+        "canyon_mesas",
+        "salt_flats"
+      ]
+    },
+    {
+      "display_name": "Ice Rock",
+      "rock_category": "ice",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Rocks/SM_IceRock",
+      "scale_min": 0.7,
+      "scale_max": 2.0,
+      "density_per_sqkm": 260,
+      "altitude_bands": [
+        "highland",
+        "alpine",
+        "peak"
+      ],
+      "slope_max_degrees": 40,
+      "exclusion_radius_cm": 500,
+      "biome_affinity": [
+        "glacier_fields",
+        "tundra_flats",
+        "alpine_peaks"
+      ]
+    },
+    {
+      "display_name": "Crystal Formation",
+      "rock_category": "crystal",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Rocks/SM_CrystalFormation",
+      "scale_min": 0.8,
+      "scale_max": 2.2,
+      "density_per_sqkm": 60,
+      "altitude_bands": [
+        "lowland",
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 35,
+      "exclusion_radius_cm": 1500,
+      "biome_affinity": [
+        "enchanted_forest",
+        "floating_isles",
+        "karst_towers"
+      ]
+    },
+    {
+      "display_name": "Obsidian Shard",
+      "rock_category": "volcanic",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Rocks/SM_ObsidianShard",
+      "scale_min": 0.6,
+      "scale_max": 1.9,
+      "density_per_sqkm": 140,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 40,
+      "exclusion_radius_cm": 600,
+      "biome_affinity": [
+        "obsidian_wastes",
+        "volcanic_badlands",
+        "crater_wastes"
+      ]
+    }
+  ],
+  "structures": [
+    {
+      "display_name": "Ruins Wall",
+      "structure_category": "ruin",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_RuinsWall",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 8,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 15,
+      "exclusion_radius_cm": 2500,
+      "biome_affinity": [
+        "rolling_hills",
+        "highland_moors",
+        "savanna_plains",
+        "enchanted_forest"
+      ],
+      "placement_rules": {
+        "ridge_preferred": false,
+        "water_adjacent": false,
+        "cluster_min": 2,
+        "cluster_max": 6
+      }
+    },
+    {
+      "display_name": "Castle Tower",
+      "structure_category": "keep",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_CastleTower",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 2,
+      "altitude_bands": [
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 12,
+      "exclusion_radius_cm": 8000,
+      "biome_affinity": [
+        "alpine_peaks",
+        "highland_moors",
+        "fjord_valleys"
+      ],
+      "placement_rules": {
+        "ridge_preferred": true,
+        "water_adjacent": false,
+        "cluster_min": 1,
+        "cluster_max": 1
+      }
+    },
+    {
+      "display_name": "Ancient Monolith",
+      "structure_category": "megalith",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_AncientMonolith",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 3,
+      "altitude_bands": [
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 10,
+      "exclusion_radius_cm": 5000,
+      "biome_affinity": [
+        "steppe_ridges",
+        "tundra_flats",
+        "salt_flats",
+        "crater_wastes"
+      ],
+      "placement_rules": {
+        "ridge_preferred": false,
+        "water_adjacent": false,
+        "cluster_min": 1,
+        "cluster_max": 1
+      }
+    },
+    {
+      "display_name": "Stone Arch",
+      "structure_category": "arch",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_StoneArch",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 4,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 18,
+      "exclusion_radius_cm": 4000,
+      "biome_affinity": [
+        "canyon_mesas",
+        "desert_dunes",
+        "coastal_cliffs"
+      ],
+      "placement_rules": {
+        "ridge_preferred": false,
+        "water_adjacent": false,
+        "cluster_min": 1,
+        "cluster_max": 2
+      }
+    },
+    {
+      "display_name": "Village Hut",
+      "structure_category": "hut",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_VillageHut",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 10,
+      "altitude_bands": [
+        "lowland"
+      ],
+      "slope_max_degrees": 8,
+      "exclusion_radius_cm": 1800,
+      "biome_affinity": [
+        "rolling_hills",
+        "tropical_islands",
+        "terraced_valleys",
+        "savanna_plains"
+      ],
+      "placement_rules": {
+        "ridge_preferred": false,
+        "water_adjacent": true,
+        "cluster_min": 3,
+        "cluster_max": 9
+      }
+    },
+    {
+      "display_name": "Shrine",
+      "structure_category": "shrine",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_Shrine",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 3,
+      "altitude_bands": [
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 14,
+      "exclusion_radius_cm": 4500,
+      "biome_affinity": [
+        "bamboo_highlands",
+        "enchanted_forest",
+        "karst_towers",
+        "terraced_valleys"
+      ],
+      "placement_rules": {
+        "ridge_preferred": true,
+        "water_adjacent": false,
+        "cluster_min": 1,
+        "cluster_max": 1
+      }
+    },
+    {
+      "display_name": "Fortress Wall",
+      "structure_category": "keep",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_FortressWall",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 5,
+      "altitude_bands": [
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 10,
+      "exclusion_radius_cm": 2200,
+      "biome_affinity": [
+        "alpine_peaks",
+        "highland_moors",
+        "steppe_ridges"
+      ],
+      "placement_rules": {
+        "ridge_preferred": true,
+        "water_adjacent": false,
+        "cluster_min": 4,
+        "cluster_max": 12
+      }
+    },
+    {
+      "display_name": "Obelisk",
+      "structure_category": "megalith",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_Obelisk",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 2,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 8,
+      "exclusion_radius_cm": 7000,
+      "biome_affinity": [
+        "desert_dunes",
+        "salt_flats",
+        "obsidian_wastes"
+      ],
+      "placement_rules": {
+        "ridge_preferred": false,
+        "water_adjacent": false,
+        "cluster_min": 1,
+        "cluster_max": 1
+      }
+    },
+    {
+      "display_name": "Cave Mouth",
+      "structure_category": "cave",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_CaveMouth",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 3,
+      "altitude_bands": [
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 60,
+      "exclusion_radius_cm": 6000,
+      "biome_affinity": [
+        "canyon_mesas",
+        "karst_towers",
+        "volcanic_badlands",
+        "alpine_peaks"
+      ],
+      "placement_rules": {
+        "ridge_preferred": false,
+        "water_adjacent": false,
+        "cluster_min": 1,
+        "cluster_max": 1
+      }
+    },
+    {
+      "display_name": "Docking Pier",
+      "structure_category": "dock",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_DockingPier",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 4,
+      "altitude_bands": [
+        "sea",
+        "lowland"
+      ],
+      "slope_max_degrees": 6,
+      "exclusion_radius_cm": 3500,
+      "biome_affinity": [
+        "archipelago",
+        "tropical_islands",
+        "fjord_valleys",
+        "coastal_cliffs"
+      ],
+      "placement_rules": {
+        "ridge_preferred": false,
+        "water_adjacent": true,
+        "cluster_min": 1,
+        "cluster_max": 3
+      }
+    },
+    {
+      "display_name": "Watchtower",
+      "structure_category": "keep",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_Watchtower",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 3,
+      "altitude_bands": [
+        "highland",
+        "alpine"
+      ],
+      "slope_max_degrees": 15,
+      "exclusion_radius_cm": 6500,
+      "biome_affinity": [
+        "alpine_peaks",
+        "fjord_valleys",
+        "steppe_ridges",
+        "coastal_cliffs"
+      ],
+      "placement_rules": {
+        "ridge_preferred": true,
+        "water_adjacent": false,
+        "cluster_min": 1,
+        "cluster_max": 1
+      }
+    },
+    {
+      "display_name": "Crystal Spire",
+      "structure_category": "crystal",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_CrystalSpire",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 2,
+      "altitude_bands": [
+        "midland",
+        "highland"
+      ],
+      "slope_max_degrees": 25,
+      "exclusion_radius_cm": 9000,
+      "biome_affinity": [
+        "enchanted_forest",
+        "floating_isles",
+        "glacier_fields"
+      ],
+      "placement_rules": {
+        "ridge_preferred": false,
+        "water_adjacent": false,
+        "cluster_min": 1,
+        "cluster_max": 4
+      }
+    },
+    {
+      "display_name": "Burial Mound",
+      "structure_category": "megalith",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_BurialMound",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 4,
+      "altitude_bands": [
+        "lowland",
+        "midland"
+      ],
+      "slope_max_degrees": 10,
+      "exclusion_radius_cm": 3000,
+      "biome_affinity": [
+        "highland_moors",
+        "tundra_flats",
+        "rolling_hills"
+      ],
+      "placement_rules": {
+        "ridge_preferred": false,
+        "water_adjacent": false,
+        "cluster_min": 2,
+        "cluster_max": 5
+      }
+    },
+    {
+      "display_name": "Standing Stones",
+      "structure_category": "megalith",
+      "asset_path": "/Game/WorldPromptEngine/Meshes/Structures/SM_StandingStones",
+      "scale_min": 0.9,
+      "scale_max": 1.2,
+      "density_per_sqkm": 2,
+      "altitude_bands": [
+        "midland"
+      ],
+      "slope_max_degrees": 12,
+      "exclusion_radius_cm": 5500,
+      "biome_affinity": [
+        "highland_moors",
+        "steppe_ridges",
+        "salt_flats",
+        "tundra_flats"
+      ],
+      "placement_rules": {
+        "ridge_preferred": false,
+        "water_adjacent": false,
+        "cluster_min": 5,
+        "cluster_max": 13
+      }
+    }
+  ],
+  "weather_sky_configs": [
+    {
+      "weather_name": "clear_noon",
+      "sun_intensity": 10.0,
+      "sun_color": {
+        "r": 1.0,
+        "g": 0.96,
+        "b": 0.88
+      },
+      "cloud_coverage": 0.1,
+      "fog_density": 0.005,
+      "fog_color": {
+        "r": 0.65,
+        "g": 0.75,
+        "b": 0.9
+      },
+      "fog_height_falloff": 0.2,
+      "sky_rayleigh": 1.0,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.9,
+      "post_saturation": 0.7,
+      "shadow_color": {
+        "r": 0.05,
+        "g": 0.06,
+        "b": 0.09
+      },
+      "highlight_color": {
+        "r": 0.95,
+        "g": 0.93,
+        "b": 0.9
+      }
+    },
+    {
+      "weather_name": "golden_hour",
+      "sun_intensity": 5.0,
+      "sun_color": {
+        "r": 1.0,
+        "g": 0.62,
+        "b": 0.32
+      },
+      "cloud_coverage": 0.35,
+      "fog_density": 0.02,
+      "fog_color": {
+        "r": 0.95,
+        "g": 0.6,
+        "b": 0.4
+      },
+      "fog_height_falloff": 0.25,
+      "sky_rayleigh": 1.4,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.92,
+      "post_saturation": 0.73,
+      "shadow_color": {
+        "r": 0.06,
+        "g": 0.068,
+        "b": 0.102
+      },
+      "highlight_color": {
+        "r": 0.94,
+        "g": 0.922,
+        "b": 0.888
+      }
+    },
+    {
+      "weather_name": "overcast",
+      "sun_intensity": 3.0,
+      "sun_color": {
+        "r": 0.85,
+        "g": 0.87,
+        "b": 0.9
+      },
+      "cloud_coverage": 0.95,
+      "fog_density": 0.03,
+      "fog_color": {
+        "r": 0.7,
+        "g": 0.72,
+        "b": 0.75
+      },
+      "fog_height_falloff": 0.18,
+      "sky_rayleigh": 0.8,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.94,
+      "post_saturation": 0.76,
+      "shadow_color": {
+        "r": 0.07,
+        "g": 0.076,
+        "b": 0.114
+      },
+      "highlight_color": {
+        "r": 0.93,
+        "g": 0.914,
+        "b": 0.876
+      }
+    },
+    {
+      "weather_name": "storm_front",
+      "sun_intensity": 1.2,
+      "sun_color": {
+        "r": 0.6,
+        "g": 0.63,
+        "b": 0.7
+      },
+      "cloud_coverage": 1.0,
+      "fog_density": 0.06,
+      "fog_color": {
+        "r": 0.35,
+        "g": 0.38,
+        "b": 0.45
+      },
+      "fog_height_falloff": 0.15,
+      "sky_rayleigh": 0.6,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.96,
+      "post_saturation": 0.79,
+      "shadow_color": {
+        "r": 0.08,
+        "g": 0.084,
+        "b": 0.126
+      },
+      "highlight_color": {
+        "r": 0.92,
+        "g": 0.906,
+        "b": 0.864
+      }
+    },
+    {
+      "weather_name": "dense_fog",
+      "sun_intensity": 2.0,
+      "sun_color": {
+        "r": 0.9,
+        "g": 0.9,
+        "b": 0.9
+      },
+      "cloud_coverage": 0.85,
+      "fog_density": 0.25,
+      "fog_color": {
+        "r": 0.78,
+        "g": 0.8,
+        "b": 0.82
+      },
+      "fog_height_falloff": 0.08,
+      "sky_rayleigh": 0.7,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.98,
+      "post_saturation": 0.82,
+      "shadow_color": {
+        "r": 0.09,
+        "g": 0.092,
+        "b": 0.138
+      },
+      "highlight_color": {
+        "r": 0.91,
+        "g": 0.898,
+        "b": 0.852
+      }
+    },
+    {
+      "weather_name": "blizzard",
+      "sun_intensity": 1.5,
+      "sun_color": {
+        "r": 0.82,
+        "g": 0.86,
+        "b": 0.95
+      },
+      "cloud_coverage": 1.0,
+      "fog_density": 0.18,
+      "fog_color": {
+        "r": 0.85,
+        "g": 0.88,
+        "b": 0.93
+      },
+      "fog_height_falloff": 0.1,
+      "sky_rayleigh": 0.65,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.0,
+      "post_saturation": 0.85,
+      "shadow_color": {
+        "r": 0.1,
+        "g": 0.1,
+        "b": 0.15
+      },
+      "highlight_color": {
+        "r": 0.9,
+        "g": 0.89,
+        "b": 0.84
+      }
+    },
+    {
+      "weather_name": "moonlit_night",
+      "sun_intensity": 0.05,
+      "sun_color": {
+        "r": 0.55,
+        "g": 0.65,
+        "b": 0.9
+      },
+      "cloud_coverage": 0.2,
+      "fog_density": 0.015,
+      "fog_color": {
+        "r": 0.1,
+        "g": 0.13,
+        "b": 0.22
+      },
+      "fog_height_falloff": 0.2,
+      "sky_rayleigh": 0.3,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.02,
+      "post_saturation": 0.88,
+      "shadow_color": {
+        "r": 0.11,
+        "g": 0.108,
+        "b": 0.162
+      },
+      "highlight_color": {
+        "r": 0.89,
+        "g": 0.882,
+        "b": 0.9
+      }
+    },
+    {
+      "weather_name": "blood_dusk",
+      "sun_intensity": 3.5,
+      "sun_color": {
+        "r": 0.95,
+        "g": 0.28,
+        "b": 0.15
+      },
+      "cloud_coverage": 0.6,
+      "fog_density": 0.05,
+      "fog_color": {
+        "r": 0.55,
+        "g": 0.18,
+        "b": 0.12
+      },
+      "fog_height_falloff": 0.12,
+      "sky_rayleigh": 1.8,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.04,
+      "post_saturation": 0.91,
+      "shadow_color": {
+        "r": 0.12,
+        "g": 0.116,
+        "b": 0.09
+      },
+      "highlight_color": {
+        "r": 0.88,
+        "g": 0.874,
+        "b": 0.888
+      }
+    },
+    {
+      "weather_name": "heavy_rain",
+      "sun_intensity": 2.2,
+      "sun_color": {
+        "r": 0.7,
+        "g": 0.74,
+        "b": 0.8
+      },
+      "cloud_coverage": 1.0,
+      "fog_density": 0.08,
+      "fog_color": {
+        "r": 0.5,
+        "g": 0.55,
+        "b": 0.62
+      },
+      "fog_height_falloff": 0.14,
+      "sky_rayleigh": 0.7,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.06,
+      "post_saturation": 0.94,
+      "shadow_color": {
+        "r": 0.13,
+        "g": 0.124,
+        "b": 0.102
+      },
+      "highlight_color": {
+        "r": 0.95,
+        "g": 0.866,
+        "b": 0.876
+      }
+    },
+    {
+      "weather_name": "sandstorm",
+      "sun_intensity": 4.0,
+      "sun_color": {
+        "r": 0.95,
+        "g": 0.72,
+        "b": 0.45
+      },
+      "cloud_coverage": 0.4,
+      "fog_density": 0.22,
+      "fog_color": {
+        "r": 0.8,
+        "g": 0.6,
+        "b": 0.38
+      },
+      "fog_height_falloff": 0.06,
+      "sky_rayleigh": 1.6,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.08,
+      "post_saturation": 0.97,
+      "shadow_color": {
+        "r": 0.14,
+        "g": 0.06,
+        "b": 0.114
+      },
+      "highlight_color": {
+        "r": 0.94,
+        "g": 0.93,
+        "b": 0.864
+      }
+    },
+    {
+      "weather_name": "aurora_night",
+      "sun_intensity": 0.03,
+      "sun_color": {
+        "r": 0.3,
+        "g": 0.85,
+        "b": 0.6
+      },
+      "cloud_coverage": 0.1,
+      "fog_density": 0.01,
+      "fog_color": {
+        "r": 0.08,
+        "g": 0.2,
+        "b": 0.18
+      },
+      "fog_height_falloff": 0.22,
+      "sky_rayleigh": 0.25,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.1,
+      "post_saturation": 1.0,
+      "shadow_color": {
+        "r": 0.05,
+        "g": 0.068,
+        "b": 0.126
+      },
+      "highlight_color": {
+        "r": 0.93,
+        "g": 0.922,
+        "b": 0.852
+      }
+    },
+    {
+      "weather_name": "morning_haze",
+      "sun_intensity": 4.5,
+      "sun_color": {
+        "r": 1.0,
+        "g": 0.85,
+        "b": 0.7
+      },
+      "cloud_coverage": 0.3,
+      "fog_density": 0.045,
+      "fog_color": {
+        "r": 0.88,
+        "g": 0.82,
+        "b": 0.78
+      },
+      "fog_height_falloff": 0.1,
+      "sky_rayleigh": 1.2,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.12,
+      "post_saturation": 1.03,
+      "shadow_color": {
+        "r": 0.06,
+        "g": 0.076,
+        "b": 0.138
+      },
+      "highlight_color": {
+        "r": 0.92,
+        "g": 0.914,
+        "b": 0.84
+      }
+    },
+    {
+      "weather_name": "ashfall",
+      "sun_intensity": 2.0,
+      "sun_color": {
+        "r": 0.75,
+        "g": 0.55,
+        "b": 0.4
+      },
+      "cloud_coverage": 0.9,
+      "fog_density": 0.14,
+      "fog_color": {
+        "r": 0.45,
+        "g": 0.4,
+        "b": 0.35
+      },
+      "fog_height_falloff": 0.09,
+      "sky_rayleigh": 1.3,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.9,
+      "post_saturation": 1.06,
+      "shadow_color": {
+        "r": 0.07,
+        "g": 0.084,
+        "b": 0.15
+      },
+      "highlight_color": {
+        "r": 0.91,
+        "g": 0.906,
+        "b": 0.9
+      }
+    },
+    {
+      "weather_name": "heat_haze",
+      "sun_intensity": 12.0,
+      "sun_color": {
+        "r": 1.0,
+        "g": 0.92,
+        "b": 0.7
+      },
+      "cloud_coverage": 0.05,
+      "fog_density": 0.035,
+      "fog_color": {
+        "r": 0.9,
+        "g": 0.8,
+        "b": 0.55
+      },
+      "fog_height_falloff": 0.05,
+      "sky_rayleigh": 1.5,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.92,
+      "post_saturation": 1.09,
+      "shadow_color": {
+        "r": 0.08,
+        "g": 0.092,
+        "b": 0.162
+      },
+      "highlight_color": {
+        "r": 0.9,
+        "g": 0.898,
+        "b": 0.888
+      }
+    },
+    {
+      "weather_name": "twilight_blue",
+      "sun_intensity": 1.8,
+      "sun_color": {
+        "r": 0.45,
+        "g": 0.55,
+        "b": 0.95
+      },
+      "cloud_coverage": 0.4,
+      "fog_density": 0.03,
+      "fog_color": {
+        "r": 0.25,
+        "g": 0.3,
+        "b": 0.5
+      },
+      "fog_height_falloff": 0.18,
+      "sky_rayleigh": 0.9,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.94,
+      "post_saturation": 1.12,
+      "shadow_color": {
+        "r": 0.09,
+        "g": 0.1,
+        "b": 0.09
+      },
+      "highlight_color": {
+        "r": 0.89,
+        "g": 0.89,
+        "b": 0.876
+      }
+    },
+    {
+      "weather_name": "nuclear_winter",
+      "sun_intensity": 0.8,
+      "sun_color": {
+        "r": 0.7,
+        "g": 0.75,
+        "b": 0.65
+      },
+      "cloud_coverage": 1.0,
+      "fog_density": 0.2,
+      "fog_color": {
+        "r": 0.55,
+        "g": 0.58,
+        "b": 0.45
+      },
+      "fog_height_falloff": 0.07,
+      "sky_rayleigh": 0.4,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.96,
+      "post_saturation": 0.7,
+      "shadow_color": {
+        "r": 0.1,
+        "g": 0.108,
+        "b": 0.102
+      },
+      "highlight_color": {
+        "r": 0.88,
+        "g": 0.882,
+        "b": 0.864
+      }
+    },
+    {
+      "weather_name": "carnival_neon",
+      "sun_intensity": 0.4,
+      "sun_color": {
+        "r": 0.7,
+        "g": 0.3,
+        "b": 1.0
+      },
+      "cloud_coverage": 0.5,
+      "fog_density": 0.07,
+      "fog_color": {
+        "r": 0.25,
+        "g": 0.1,
+        "b": 0.35
+      },
+      "fog_height_falloff": 0.12,
+      "sky_rayleigh": 0.5,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.98,
+      "post_saturation": 0.73,
+      "shadow_color": {
+        "r": 0.11,
+        "g": 0.116,
+        "b": 0.114
+      },
+      "highlight_color": {
+        "r": 0.95,
+        "g": 0.874,
+        "b": 0.852
+      }
+    },
+    {
+      "weather_name": "monsoon_green",
+      "sun_intensity": 2.5,
+      "sun_color": {
+        "r": 0.65,
+        "g": 0.8,
+        "b": 0.7
+      },
+      "cloud_coverage": 0.95,
+      "fog_density": 0.1,
+      "fog_color": {
+        "r": 0.45,
+        "g": 0.6,
+        "b": 0.5
+      },
+      "fog_height_falloff": 0.11,
+      "sky_rayleigh": 0.85,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.0,
+      "post_saturation": 0.76,
+      "shadow_color": {
+        "r": 0.12,
+        "g": 0.124,
+        "b": 0.126
+      },
+      "highlight_color": {
+        "r": 0.94,
+        "g": 0.866,
+        "b": 0.84
+      }
+    },
+    {
+      "weather_name": "crystal_glow",
+      "sun_intensity": 0.6,
+      "sun_color": {
+        "r": 0.4,
+        "g": 0.9,
+        "b": 1.0
+      },
+      "cloud_coverage": 0.25,
+      "fog_density": 0.04,
+      "fog_color": {
+        "r": 0.15,
+        "g": 0.35,
+        "b": 0.4
+      },
+      "fog_height_falloff": 0.16,
+      "sky_rayleigh": 0.55,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.02,
+      "post_saturation": 0.79,
+      "shadow_color": {
+        "r": 0.13,
+        "g": 0.06,
+        "b": 0.138
+      },
+      "highlight_color": {
+        "r": 0.93,
+        "g": 0.93,
+        "b": 0.9
+      }
+    },
+    {
+      "weather_name": "dust_golden",
+      "sun_intensity": 6.0,
+      "sun_color": {
+        "r": 1.0,
+        "g": 0.78,
+        "b": 0.4
+      },
+      "cloud_coverage": 0.35,
+      "fog_density": 0.09,
+      "fog_color": {
+        "r": 0.85,
+        "g": 0.65,
+        "b": 0.35
+      },
+      "fog_height_falloff": 0.08,
+      "sky_rayleigh": 1.35,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.04,
+      "post_saturation": 0.82,
+      "shadow_color": {
+        "r": 0.14,
+        "g": 0.068,
+        "b": 0.15
+      },
+      "highlight_color": {
+        "r": 0.92,
+        "g": 0.922,
+        "b": 0.888
+      }
+    },
+    {
+      "weather_name": "deep_ocean_dark",
+      "sun_intensity": 0.2,
+      "sun_color": {
+        "r": 0.2,
+        "g": 0.35,
+        "b": 0.7
+      },
+      "cloud_coverage": 0.7,
+      "fog_density": 0.12,
+      "fog_color": {
+        "r": 0.05,
+        "g": 0.1,
+        "b": 0.2
+      },
+      "fog_height_falloff": 0.2,
+      "sky_rayleigh": 0.35,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.06,
+      "post_saturation": 0.85,
+      "shadow_color": {
+        "r": 0.05,
+        "g": 0.076,
+        "b": 0.162
+      },
+      "highlight_color": {
+        "r": 0.91,
+        "g": 0.914,
+        "b": 0.876
+      }
+    },
+    {
+      "weather_name": "underwater_teal",
+      "sun_intensity": 2.0,
+      "sun_color": {
+        "r": 0.3,
+        "g": 0.75,
+        "b": 0.9
+      },
+      "cloud_coverage": 0.15,
+      "fog_density": 0.09,
+      "fog_color": {
+        "r": 0.04,
+        "g": 0.32,
+        "b": 0.42
+      },
+      "fog_height_falloff": 0.07,
+      "sky_rayleigh": 0.55,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.08,
+      "post_saturation": 0.88,
+      "shadow_color": {
+        "r": 0.06,
+        "g": 0.084,
+        "b": 0.09
+      },
+      "highlight_color": {
+        "r": 0.9,
+        "g": 0.906,
+        "b": 0.864
+      }
+    },
+    {
+      "weather_name": "cherry_blossom",
+      "sun_intensity": 5.5,
+      "sun_color": {
+        "r": 1.0,
+        "g": 0.9,
+        "b": 0.92
+      },
+      "cloud_coverage": 0.25,
+      "fog_density": 0.025,
+      "fog_color": {
+        "r": 0.95,
+        "g": 0.85,
+        "b": 0.9
+      },
+      "fog_height_falloff": 0.15,
+      "sky_rayleigh": 1.1,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.1,
+      "post_saturation": 0.91,
+      "shadow_color": {
+        "r": 0.07,
+        "g": 0.092,
+        "b": 0.102
+      },
+      "highlight_color": {
+        "r": 0.89,
+        "g": 0.898,
+        "b": 0.852
+      }
+    },
+    {
+      "weather_name": "ember_night",
+      "sun_intensity": 0.15,
+      "sun_color": {
+        "r": 1.0,
+        "g": 0.45,
+        "b": 0.15
+      },
+      "cloud_coverage": 0.3,
+      "fog_density": 0.05,
+      "fog_color": {
+        "r": 0.25,
+        "g": 0.12,
+        "b": 0.08
+      },
+      "fog_height_falloff": 0.14,
+      "sky_rayleigh": 0.45,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.12,
+      "post_saturation": 0.94,
+      "shadow_color": {
+        "r": 0.08,
+        "g": 0.1,
+        "b": 0.114
+      },
+      "highlight_color": {
+        "r": 0.88,
+        "g": 0.89,
+        "b": 0.84
+      }
+    },
+    {
+      "weather_name": "soft_drizzle",
+      "sun_intensity": 3.0,
+      "sun_color": {
+        "r": 0.8,
+        "g": 0.82,
+        "b": 0.88
+      },
+      "cloud_coverage": 0.75,
+      "fog_density": 0.04,
+      "fog_color": {
+        "r": 0.7,
+        "g": 0.74,
+        "b": 0.78
+      },
+      "fog_height_falloff": 0.16,
+      "sky_rayleigh": 0.85,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.9,
+      "post_saturation": 0.97,
+      "shadow_color": {
+        "r": 0.09,
+        "g": 0.108,
+        "b": 0.126
+      },
+      "highlight_color": {
+        "r": 0.95,
+        "g": 0.882,
+        "b": 0.9
+      }
+    },
+    {
+      "weather_name": "hailstorm",
+      "sun_intensity": 1.0,
+      "sun_color": {
+        "r": 0.7,
+        "g": 0.75,
+        "b": 0.85
+      },
+      "cloud_coverage": 1.0,
+      "fog_density": 0.1,
+      "fog_color": {
+        "r": 0.55,
+        "g": 0.6,
+        "b": 0.7
+      },
+      "fog_height_falloff": 0.12,
+      "sky_rayleigh": 0.55,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.92,
+      "post_saturation": 1.0,
+      "shadow_color": {
+        "r": 0.1,
+        "g": 0.116,
+        "b": 0.138
+      },
+      "highlight_color": {
+        "r": 0.94,
+        "g": 0.874,
+        "b": 0.888
+      }
+    },
+    {
+      "weather_name": "whiteout",
+      "sun_intensity": 2.5,
+      "sun_color": {
+        "r": 0.95,
+        "g": 0.97,
+        "b": 1.0
+      },
+      "cloud_coverage": 1.0,
+      "fog_density": 0.35,
+      "fog_color": {
+        "r": 0.92,
+        "g": 0.94,
+        "b": 0.98
+      },
+      "fog_height_falloff": 0.05,
+      "sky_rayleigh": 0.5,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.94,
+      "post_saturation": 1.03,
+      "shadow_color": {
+        "r": 0.11,
+        "g": 0.124,
+        "b": 0.15
+      },
+      "highlight_color": {
+        "r": 0.93,
+        "g": 0.866,
+        "b": 0.876
+      }
+    },
+    {
+      "weather_name": "blood_moon",
+      "sun_intensity": 0.08,
+      "sun_color": {
+        "r": 0.95,
+        "g": 0.25,
+        "b": 0.2
+      },
+      "cloud_coverage": 0.35,
+      "fog_density": 0.04,
+      "fog_color": {
+        "r": 0.25,
+        "g": 0.05,
+        "b": 0.05
+      },
+      "fog_height_falloff": 0.18,
+      "sky_rayleigh": 0.4,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.96,
+      "post_saturation": 1.06,
+      "shadow_color": {
+        "r": 0.12,
+        "g": 0.06,
+        "b": 0.162
+      },
+      "highlight_color": {
+        "r": 0.92,
+        "g": 0.93,
+        "b": 0.864
+      }
+    },
+    {
+      "weather_name": "eclipse",
+      "sun_intensity": 0.25,
+      "sun_color": {
+        "r": 0.6,
+        "g": 0.55,
+        "b": 0.7
+      },
+      "cloud_coverage": 0.2,
+      "fog_density": 0.03,
+      "fog_color": {
+        "r": 0.15,
+        "g": 0.12,
+        "b": 0.2
+      },
+      "fog_height_falloff": 0.2,
+      "sky_rayleigh": 0.35,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.98,
+      "post_saturation": 1.09,
+      "shadow_color": {
+        "r": 0.13,
+        "g": 0.068,
+        "b": 0.09
+      },
+      "highlight_color": {
+        "r": 0.91,
+        "g": 0.922,
+        "b": 0.852
+      }
+    },
+    {
+      "weather_name": "toxic_fog",
+      "sun_intensity": 2.0,
+      "sun_color": {
+        "r": 0.55,
+        "g": 0.9,
+        "b": 0.4
+      },
+      "cloud_coverage": 0.7,
+      "fog_density": 0.2,
+      "fog_color": {
+        "r": 0.35,
+        "g": 0.55,
+        "b": 0.25
+      },
+      "fog_height_falloff": 0.08,
+      "sky_rayleigh": 0.7,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.0,
+      "post_saturation": 1.12,
+      "shadow_color": {
+        "r": 0.14,
+        "g": 0.076,
+        "b": 0.102
+      },
+      "highlight_color": {
+        "r": 0.9,
+        "g": 0.914,
+        "b": 0.84
+      }
+    },
+    {
+      "weather_name": "indigo_night",
+      "sun_intensity": 0.04,
+      "sun_color": {
+        "r": 0.45,
+        "g": 0.35,
+        "b": 0.95
+      },
+      "cloud_coverage": 0.15,
+      "fog_density": 0.02,
+      "fog_color": {
+        "r": 0.12,
+        "g": 0.08,
+        "b": 0.25
+      },
+      "fog_height_falloff": 0.2,
+      "sky_rayleigh": 0.3,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.02,
+      "post_saturation": 0.7,
+      "shadow_color": {
+        "r": 0.05,
+        "g": 0.084,
+        "b": 0.114
+      },
+      "highlight_color": {
+        "r": 0.89,
+        "g": 0.906,
+        "b": 0.9
+      }
+    },
+    {
+      "weather_name": "desert_night",
+      "sun_intensity": 0.06,
+      "sun_color": {
+        "r": 0.7,
+        "g": 0.75,
+        "b": 1.0
+      },
+      "cloud_coverage": 0.05,
+      "fog_density": 0.008,
+      "fog_color": {
+        "r": 0.08,
+        "g": 0.1,
+        "b": 0.18
+      },
+      "fog_height_falloff": 0.25,
+      "sky_rayleigh": 0.25,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.04,
+      "post_saturation": 0.73,
+      "shadow_color": {
+        "r": 0.06,
+        "g": 0.092,
+        "b": 0.126
+      },
+      "highlight_color": {
+        "r": 0.88,
+        "g": 0.898,
+        "b": 0.888
+      }
+    },
+    {
+      "weather_name": "humid_dawn",
+      "sun_intensity": 3.8,
+      "sun_color": {
+        "r": 1.0,
+        "g": 0.88,
+        "b": 0.75
+      },
+      "cloud_coverage": 0.4,
+      "fog_density": 0.07,
+      "fog_color": {
+        "r": 0.85,
+        "g": 0.88,
+        "b": 0.8
+      },
+      "fog_height_falloff": 0.09,
+      "sky_rayleigh": 1.15,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.06,
+      "post_saturation": 0.76,
+      "shadow_color": {
+        "r": 0.07,
+        "g": 0.1,
+        "b": 0.138
+      },
+      "highlight_color": {
+        "r": 0.95,
+        "g": 0.89,
+        "b": 0.876
+      }
+    },
+    {
+      "weather_name": "wildfire_sky",
+      "sun_intensity": 4.0,
+      "sun_color": {
+        "r": 1.0,
+        "g": 0.45,
+        "b": 0.2
+      },
+      "cloud_coverage": 0.85,
+      "fog_density": 0.16,
+      "fog_color": {
+        "r": 0.55,
+        "g": 0.3,
+        "b": 0.15
+      },
+      "fog_height_falloff": 0.07,
+      "sky_rayleigh": 1.5,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.08,
+      "post_saturation": 0.79,
+      "shadow_color": {
+        "r": 0.08,
+        "g": 0.108,
+        "b": 0.15
+      },
+      "highlight_color": {
+        "r": 0.94,
+        "g": 0.882,
+        "b": 0.864
+      }
+    },
+    {
+      "weather_name": "clear_midnight",
+      "sun_intensity": 0.02,
+      "sun_color": {
+        "r": 0.5,
+        "g": 0.6,
+        "b": 0.95
+      },
+      "cloud_coverage": 0.0,
+      "fog_density": 0.005,
+      "fog_color": {
+        "r": 0.05,
+        "g": 0.06,
+        "b": 0.12
+      },
+      "fog_height_falloff": 0.25,
+      "sky_rayleigh": 0.2,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.1,
+      "post_saturation": 0.82,
+      "shadow_color": {
+        "r": 0.09,
+        "g": 0.116,
+        "b": 0.162
+      },
+      "highlight_color": {
+        "r": 0.93,
+        "g": 0.874,
+        "b": 0.852
+      }
+    },
+    {
+      "weather_name": "silver_overcast",
+      "sun_intensity": 3.2,
+      "sun_color": {
+        "r": 0.88,
+        "g": 0.9,
+        "b": 0.95
+      },
+      "cloud_coverage": 0.9,
+      "fog_density": 0.025,
+      "fog_color": {
+        "r": 0.75,
+        "g": 0.78,
+        "b": 0.82
+      },
+      "fog_height_falloff": 0.17,
+      "sky_rayleigh": 0.75,
+      "ambient_intensity": 1.0,
+      "post_contrast": 1.12,
+      "post_saturation": 0.85,
+      "shadow_color": {
+        "r": 0.1,
+        "g": 0.124,
+        "b": 0.09
+      },
+      "highlight_color": {
+        "r": 0.92,
+        "g": 0.866,
+        "b": 0.84
+      }
+    },
+    {
+      "weather_name": "amber_afternoon",
+      "sun_intensity": 7.0,
+      "sun_color": {
+        "r": 1.0,
+        "g": 0.78,
+        "b": 0.45
+      },
+      "cloud_coverage": 0.25,
+      "fog_density": 0.018,
+      "fog_color": {
+        "r": 0.9,
+        "g": 0.75,
+        "b": 0.5
+      },
+      "fog_height_falloff": 0.2,
+      "sky_rayleigh": 1.25,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.9,
+      "post_saturation": 0.88,
+      "shadow_color": {
+        "r": 0.11,
+        "g": 0.06,
+        "b": 0.102
+      },
+      "highlight_color": {
+        "r": 0.91,
+        "g": 0.93,
+        "b": 0.9
+      }
+    },
+    {
+      "weather_name": "storm_aftermath",
+      "sun_intensity": 4.5,
+      "sun_color": {
+        "r": 0.85,
+        "g": 0.9,
+        "b": 1.0
+      },
+      "cloud_coverage": 0.55,
+      "fog_density": 0.035,
+      "fog_color": {
+        "r": 0.65,
+        "g": 0.7,
+        "b": 0.78
+      },
+      "fog_height_falloff": 0.14,
+      "sky_rayleigh": 0.95,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.92,
+      "post_saturation": 0.91,
+      "shadow_color": {
+        "r": 0.12,
+        "g": 0.068,
+        "b": 0.114
+      },
+      "highlight_color": {
+        "r": 0.9,
+        "g": 0.922,
+        "b": 0.888
+      }
+    },
+    {
+      "weather_name": "polar_day",
+      "sun_intensity": 6.0,
+      "sun_color": {
+        "r": 0.95,
+        "g": 0.95,
+        "b": 1.0
+      },
+      "cloud_coverage": 0.3,
+      "fog_density": 0.02,
+      "fog_color": {
+        "r": 0.85,
+        "g": 0.9,
+        "b": 0.95
+      },
+      "fog_height_falloff": 0.15,
+      "sky_rayleigh": 0.8,
+      "ambient_intensity": 1.0,
+      "post_contrast": 0.94,
+      "post_saturation": 0.94,
+      "shadow_color": {
+        "r": 0.13,
+        "g": 0.076,
+        "b": 0.126
+      },
+      "highlight_color": {
+        "r": 0.89,
+        "g": 0.914,
+        "b": 0.876
+      }
+    }
+  ]
 }

@@ -60,6 +60,13 @@ GLOBAL_STATE = {
     "last_structure_summary": None,
     "kit_actors": [],               # spawned user-kit (Fab) meshes
     "last_kit_summary": None,
+    # --- Author/Performance dashboard state ---
+    "mode": "author",               # "author" | "performance"
+    "current_phase": "Idle",
+    "last_prompt": "",
+    "abort_flag": False,
+    "last_world_save_ok": None,
+    "last_world_library": [],
 }
 
 _TICK_HANDLE = None
@@ -454,6 +461,17 @@ def _boot():
         if cfg.get("auto_setup_on_boot", True):
             content_library.setup_content()
         editor_menu.register_menus()
+        # Performance mode + dashboard (never runs generation code)
+        try:
+            import performance_engine
+            performance_engine.start_osc_receiver()
+        except Exception as e:
+            unreal.log_error("WorldPromptEngine: performance_engine init failed: {}".format(e))
+        try:
+            import wpe_dashboard
+            wpe_dashboard.initialize()
+        except Exception as e:
+            unreal.log_error("WorldPromptEngine: dashboard init failed: {}".format(e))
         # Touch the uclass so Unreal registers WorldPromptBuilder for spawning
         _ = world_builder_actor.WorldPromptBuilder
         unreal.log(

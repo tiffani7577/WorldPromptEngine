@@ -45,7 +45,7 @@ Also: **Tools → World Prompt Engine (Native) → Build Native World Tile Plan*
 | World Partition | Stream continents, not one giant mesh |
 | PCG + your Content folder | Foliage / structures at scale |
 
-**Power now:** 26 terrain archetypes · 38 weather presets · structure_forge (6 families: keep/ruin/crystal/megalith/hut/arch) · 35+ structure types wired through the manifest · native tile planner.
+**Power now:** 26 terrain archetypes · 38 weather presets · structure_forge (6 families: keep/ruin/crystal/megalith/hut/arch) · 35+ structure types wired through the manifest · native tile planner · **Performance Mode** (OSC port 8000, setlists, fog crossfades, 6-channel live music reactivity) · world library save/load · Ableton OSC bridge.
 
 Optional bake (in editor Python):
 

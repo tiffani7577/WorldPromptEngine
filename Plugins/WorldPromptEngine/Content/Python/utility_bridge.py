@@ -59,6 +59,24 @@ VALID_ACTIONS = frozenset({
     "use_folder",
     "find_folder",
     "content_status",
+    # MCP dev tools (.cursor/mcp.json)
+    "get_generation_status",
+    "get_world_library",
+    "get_setlist",
+    "trigger_next_world",
+    "set_live_param",
+    # Author/performance dashboard actions
+    "generate_world",
+    "save_world",
+    "load_setlist",
+    "save_setlist",
+})
+
+# Read-only queries answered inline by the bridge thread (dict reads are
+# GIL-safe; no unreal API calls happen here).
+_QUERY_ACTIONS = frozenset({
+    "get_generation_status",
+    "get_setlist",
 })
 
 # Set by start_server(); shared with init_unreal / art_engine.
@@ -194,6 +212,26 @@ def _enqueue(raw_text: str) -> dict:
             return {"ok": False, "error": "unknown action '{}'".format(action)}
         if _STATE is None:
             return {"ok": False, "error": "bridge state not initialized"}
+
+        # Read-only queries: answer immediately without touching unreal APIs.
+        if action in _QUERY_ACTIONS:
+            try:
+                if action == "get_generation_status":
+                    return {
+                        "ok": True,
+                        "is_generating": bool(_STATE.get("is_generating", False)),
+                        "current_phase": str(_STATE.get("current_phase", "Idle")),
+                        "progress_pct": float(_STATE.get("progress", 0.0)) * 100.0,
+                    }
+                if action == "get_setlist":
+                    import performance_engine
+                    return {
+                        "ok": True,
+                        "setlist": list(performance_engine.STATE["setlist"]),
+                        "current_index": performance_engine.STATE["current_setlist_index"],
+                    }
+            except Exception as e:
+                return {"ok": False, "error": str(e)}
 
         # Push the raw dict — deque.append() is thread-safe (GIL-atomic).
         _STATE["command_queue"].append(payload)
