@@ -1,6 +1,15 @@
 #include "WPEWorldGeneratorSubsystem.h"
 #include "WPEWorldScaleSettings.h"
 #include "Async/Async.h"
+#include "Landscape.h"
+#include "LandscapeInfo.h"
+#include "LandscapeComponent.h"
+#include "LandscapeHeightfieldCollisionComponent.h"
+#include "HAL/PlatformTime.h"
+
+#if WITH_EDITOR
+#include "LandscapeEdit.h"
+#endif
 
 namespace WPENoise
 {
@@ -94,6 +103,131 @@ void UWPEWorldGeneratorSubsystem::Deinitialize()
 	Super::Deinitialize();
 }
 
+FIntPoint UWPEWorldGeneratorSubsystem::GetLandscapeHeightResolution(ALandscape* TargetLandscape) const
+{
+	if (!TargetLandscape)
+	{
+		return FIntPoint::ZeroValue;
+	}
+
+	ULandscapeInfo* LandscapeInfo = TargetLandscape->GetLandscapeInfo();
+	if (!LandscapeInfo)
+	{
+		return FIntPoint::ZeroValue;
+	}
+
+	int32 MinX = 0;
+	int32 MinY = 0;
+	int32 MaxX = 0;
+	int32 MaxY = 0;
+	if (!LandscapeInfo->GetLandscapeExtent(MinX, MinY, MaxX, MaxY))
+	{
+		return FIntPoint::ZeroValue;
+	}
+
+	return FIntPoint((MaxX - MinX) + 1, (MaxY - MinY) + 1);
+}
+
+bool UWPEWorldGeneratorSubsystem::ApplyHeightmapToLandscape(
+	ALandscape* TargetLandscape,
+	const TArray<int32>& RawHeights,
+	int32 ResolutionX,
+	int32 ResolutionY)
+{
+#if !WITH_EDITOR
+	UE_LOG(LogTemp, Error, TEXT("WPE: ApplyHeightmapToLandscape requires an editor build (FLandscapeEditDataInterface)."));
+	return false;
+#else
+	if (!TargetLandscape)
+	{
+		UE_LOG(LogTemp, Error, TEXT("WPE: TargetLandscape is null."));
+		return false;
+	}
+
+	const int32 ExpectedTotalElements = ResolutionX * ResolutionY;
+	if (RawHeights.Num() != ExpectedTotalElements)
+	{
+		UE_LOG(LogTemp, Error, TEXT("WPE: Resolution mismatch. Expected %d elements (%dx%d), got %d."),
+			ExpectedTotalElements, ResolutionX, ResolutionY, RawHeights.Num());
+		return false;
+	}
+
+	if (ResolutionX <= 1 || ResolutionY <= 1
+		|| ((ResolutionX - 1) % 63 != 0)
+		|| ((ResolutionY - 1) % 63 != 0))
+	{
+		UE_LOG(LogTemp, Warning, TEXT("WPE: Resolution (%dx%d) is not optimal (63*N + 1)."), ResolutionX, ResolutionY);
+	}
+
+	ULandscapeInfo* LandscapeInfo = TargetLandscape->GetLandscapeInfo();
+	if (!LandscapeInfo)
+	{
+		UE_LOG(LogTemp, Error, TEXT("WPE: Failed to fetch Landscape Info."));
+		return false;
+	}
+
+	const double StartTime = FPlatformTime::Seconds();
+	TargetLandscape->Modify();
+
+	int32 MinX = 0;
+	int32 MinY = 0;
+	int32 MaxX = 0;
+	int32 MaxY = 0;
+	if (!LandscapeInfo->GetLandscapeExtent(MinX, MinY, MaxX, MaxY))
+	{
+		UE_LOG(LogTemp, Error, TEXT("WPE: Missing valid Landscape extent data."));
+		return false;
+	}
+
+	const int32 LandscapeWidth = (MaxX - MinX) + 1;
+	const int32 LandscapeHeight = (MaxY - MinY) + 1;
+
+	if (LandscapeWidth != ResolutionX || LandscapeHeight != ResolutionY)
+	{
+		UE_LOG(LogTemp, Error, TEXT("WPE: Size mismatch. Target: %dx%d, Inbound Buffer: %dx%d. Rejecting change."),
+			LandscapeWidth, LandscapeHeight, ResolutionX, ResolutionY);
+		return false;
+	}
+
+	TArray<uint16> LandscapeConvertedHeights;
+	LandscapeConvertedHeights.SetNumUninitialized(ExpectedTotalElements);
+	for (int32 i = 0; i < ExpectedTotalElements; ++i)
+	{
+		LandscapeConvertedHeights[i] = static_cast<uint16>(FMath::Clamp(RawHeights[i], 0, 65535));
+	}
+
+	{
+		FLandscapeEditDataInterface LandscapeEDI(LandscapeInfo);
+		// stride 0 = tightly packed; InCalcNormals true; collision/bounds refresh via defaults
+		LandscapeEDI.SetHeightData(MinX, MinY, MaxX, MaxY, LandscapeConvertedHeights.GetData(), 0, true);
+	}
+
+	TargetLandscape->PostEditChange();
+
+	LandscapeInfo->ForAllLandscapeComponents([](ULandscapeComponent* Component)
+	{
+		if (!Component)
+		{
+			return;
+		}
+		Component->Modify();
+		Component->UpdateCachedBounds();
+		Component->MarkRenderStateDirty();
+		if (ULandscapeHeightfieldCollisionComponent* CollisionComp = Component->GetCollisionComponent())
+		{
+			CollisionComp->RecreateCollision();
+		}
+	});
+
+	// Ensure proxy-level collision components are fully rebuilt for PIE / traces (G-04).
+	LandscapeInfo->RecreateCollisionComponents();
+
+	const double ElapsedTimeMs = (FPlatformTime::Seconds() - StartTime) * 1000.0;
+	UE_LOG(LogTemp, Log, TEXT("WPE: Native heightfield apply phase resolved flawlessly in %.2f ms."), ElapsedTimeMs);
+	return true;
+#endif // WITH_EDITOR
+}
+
 FString UWPEWorldGeneratorSubsystem::GetScaleSummary() const
 {
 	const UWPEWorldScaleSettings* Settings = GetDefault<UWPEWorldScaleSettings>();
@@ -153,14 +287,13 @@ bool UWPEWorldGeneratorSubsystem::GenerateHeightTile(
 	OutHeights.SetNumUninitialized(Res * Res);
 
 	const WPENoise::FPerlin2D Noise(Seed);
-	const float WorldFreqScale = 1.0f;
 	for (int32 Y = 0; Y < Res; ++Y)
 	{
 		for (int32 X = 0; X < Res; ++X)
 		{
 			const float NX = static_cast<float>(TileX * (Res - 1) + X);
 			const float NY = static_cast<float>(TileY * (Res - 1) + Y);
-			const float N = Noise.FBM(NX, NY, Octaves, Frequency * WorldFreqScale, Persistence, Lacunarity);
+			const float N = Noise.FBM(NX, NY, Octaves, Frequency, Persistence, Lacunarity);
 			const float Remapped = FMath::Clamp(N * 0.5f + 0.5f, 0.0f, 1.0f);
 			OutHeights[Y * Res + X] = static_cast<uint16>(Remapped * 65535.0f);
 		}
@@ -171,7 +304,7 @@ bool UWPEWorldGeneratorSubsystem::GenerateHeightTile(
 int32 UWPEWorldGeneratorSubsystem::GetPendingTileCount() const
 {
 	FScopeLock Lock(const_cast<FCriticalSection*>(&QueueLock));
-	return PendingTiles.Num() + OutstandingTasks.Load();
+	return PendingTiles.Num() + OutstandingTasks.load();
 }
 
 int32 UWPEWorldGeneratorSubsystem::EnqueueTileBatch(const TArray<FWPEWorldTileCoord>& Tiles, int32 Seed, int32 Resolution)
@@ -188,7 +321,7 @@ int32 UWPEWorldGeneratorSubsystem::EnqueueTileBatch(const TArray<FWPEWorldTileCo
 			break;
 		}
 
-		OutstandingTasks.FetchAdd(1);
+		OutstandingTasks.fetch_add(1);
 		++Accepted;
 
 		const int32 TX = Tile.TileX;
@@ -206,7 +339,7 @@ int32 UWPEWorldGeneratorSubsystem::EnqueueTileBatch(const TArray<FWPEWorldTileCo
 					if (UWPEWorldGeneratorSubsystem* SelfInner = WeakThis.Get())
 					{
 						SelfInner->OnTileGenerated.Broadcast(TX, TY);
-						SelfInner->OutstandingTasks.FetchSub(1);
+						SelfInner->OutstandingTasks.fetch_sub(1);
 					}
 				});
 			}

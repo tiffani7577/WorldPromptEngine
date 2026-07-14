@@ -13,6 +13,7 @@ public class WorldPromptEngine : ModuleRules
 			"CoreUObject",
 			"Engine",
 			"Landscape",
+			"Foliage",
 			"DeveloperSettings"
 		});
 
@@ -21,5 +22,14 @@ public class WorldPromptEngine : ModuleRules
 			"RenderCore",
 			"RHI"
 		});
+
+		if (Target.bBuildEditor)
+		{
+			PrivateDependencyModuleNames.AddRange(new string[]
+			{
+				"UnrealEd"
+			});
+		}
 	}
 }
+
