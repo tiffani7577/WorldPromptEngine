@@ -57,6 +57,7 @@ STATE = {
     "live_tick_handle": None,
     "transition_tick_handle": None,
     "transition_gen": None,
+    "show_running": False,
 }
 
 

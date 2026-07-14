@@ -188,66 +188,78 @@ def action_library() -> dict:
     try:
         rows = []
         for m in wpe_dashboard.library() or []:
+            prompt = (m.get("prompt_text") or "").strip()
             rows.append({
                 "world_name": m.get("world_name", ""),
                 "level_path": m.get("level_path", ""),
-                "prompt_preview": (m.get("prompt_text") or "")[:120],
+                "prompt_preview": (prompt[:60] + ("…" if len(prompt) > 60 else "")),
                 "creation_date": m.get("creation_date", ""),
             })
         return _friendly(True, "ok", worlds=rows)
     except Exception:
-        return _friendly(False, "Something went wrong — try again.", worlds=[])
+        return _friendly(False, "Could not connect — check your setup", worlds=[])
 
 
 # ---------------------------------------------------------------------------
-# Setlist actions
+# Setlist actions — call performance_engine via dashboard wrappers
 # ---------------------------------------------------------------------------
+
+def _setlist_snapshot() -> list:
+    rows = []
+    for i, e in enumerate(performance_engine.STATE.get("setlist") or []):
+        rows.append({
+            "index": i,
+            "name": e.get("name", ""),
+            "path": e.get("path", ""),
+        })
+    return rows
+
+
+def _saved_setlists() -> list:
+    try:
+        return list(performance_engine.list_saved_setlists() or [])
+    except Exception:
+        return []
+
 
 def action_setlist_add(world_path: str, display_name: str) -> dict:
     try:
         if not world_path:
             return _friendly(False, "Pick a saved world first.")
-        wpe_dashboard.setlist_add(world_path, display_name or world_path)
-        return _friendly(True, "Added to setlist.", setlist=action_setlist_get()["setlist"])
+        performance_engine.add_world_to_setlist(world_path, display_name or world_path)
+        return _friendly(True, "Added to setlist.", setlist=_setlist_snapshot(), saved=_saved_setlists())
     except Exception:
-        return _friendly(False, "Something went wrong — try again.")
+        return _friendly(False, "Could not connect — check your setup")
 
 
 def action_setlist_remove(index: int) -> dict:
     try:
-        wpe_dashboard.setlist_remove(int(index))
-        return _friendly(True, "Removed.", setlist=action_setlist_get()["setlist"])
+        performance_engine.remove_world_from_setlist(int(index))
+        return _friendly(True, "Removed.", setlist=_setlist_snapshot(), saved=_saved_setlists())
     except Exception:
-        return _friendly(False, "Something went wrong — try again.")
+        return _friendly(False, "Could not connect — check your setup")
 
 
 def action_setlist_move(index: int, direction: str) -> dict:
     try:
         idx = int(index)
-        sl = wpe_dashboard.setlist()
+        sl = performance_engine.STATE.get("setlist") or []
         if direction == "up":
             to = max(0, idx - 1)
         else:
             to = min(len(sl) - 1, idx + 1)
         if to != idx:
-            wpe_dashboard.setlist_move(idx, to)
-        return _friendly(True, "Reordered.", setlist=action_setlist_get()["setlist"])
+            performance_engine.reorder_setlist(idx, to)
+        return _friendly(True, "Reordered.", setlist=_setlist_snapshot(), saved=_saved_setlists())
     except Exception:
-        return _friendly(False, "Something went wrong — try again.")
+        return _friendly(False, "Could not connect — check your setup")
 
 
 def action_setlist_get() -> dict:
     try:
-        rows = []
-        for i, e in enumerate(wpe_dashboard.setlist() or []):
-            rows.append({
-                "index": i,
-                "name": e.get("name", ""),
-                "path": e.get("path", ""),
-            })
-        return _friendly(True, "ok", setlist=rows, saved=wpe_dashboard.setlists() or [])
+        return _friendly(True, "ok", setlist=_setlist_snapshot(), saved=_saved_setlists())
     except Exception:
-        return _friendly(False, "Something went wrong — try again.", setlist=[], saved=[])
+        return _friendly(False, "Could not connect — check your setup", setlist=[], saved=[])
 
 
 def action_setlist_save(name: str) -> dict:
@@ -255,14 +267,14 @@ def action_setlist_save(name: str) -> dict:
         name = (name or "").strip()
         if not name:
             return _friendly(False, "Name your setlist first.")
-        if not wpe_dashboard.setlist():
+        if not (performance_engine.STATE.get("setlist") or []):
             return _friendly(False, "Add at least one world to the setlist first.")
-        ok = wpe_dashboard.setlist_save(name)
+        ok = bool(performance_engine.save_setlist(name))
         if ok:
-            return _friendly(True, "Setlist saved!", saved=wpe_dashboard.setlists() or [])
+            return _friendly(True, "Setlist saved!", setlist=_setlist_snapshot(), saved=_saved_setlists())
         return _friendly(False, "Could not save setlist — try again.")
     except Exception:
-        return _friendly(False, "Something went wrong — try again.")
+        return _friendly(False, "Could not connect — check your setup")
 
 
 def action_setlist_load(name: str) -> dict:
@@ -270,12 +282,28 @@ def action_setlist_load(name: str) -> dict:
         name = (name or "").strip()
         if not name:
             return _friendly(False, "Pick a setlist to load.")
-        ok = wpe_dashboard.setlist_load(name)
+        ok = bool(performance_engine.load_setlist(name))
         if ok:
-            return _friendly(True, "Setlist loaded.", setlist=action_setlist_get()["setlist"])
+            return _friendly(True, "Setlist loaded.", setlist=_setlist_snapshot(), saved=_saved_setlists())
         return _friendly(False, "Could not load that setlist.")
     except Exception:
-        return _friendly(False, "Something went wrong — try again.")
+        return _friendly(False, "Could not connect — check your setup")
+
+
+def _current_and_next_world():
+    sl = performance_engine.STATE.get("setlist") or []
+    idx = int(performance_engine.STATE.get("current_setlist_index", -1))
+    current = ""
+    nxt = ""
+    if not sl:
+        return current, nxt, idx
+    if 0 <= idx < len(sl):
+        current = sl[idx].get("name", "")
+        nxt = sl[(idx + 1) % len(sl)].get("name", "")
+    else:
+        # Show not advanced yet — next press loads the first world.
+        nxt = sl[0].get("name", "")
+    return current, nxt, idx
 
 
 # ---------------------------------------------------------------------------
@@ -286,62 +314,71 @@ def action_start_show() -> dict:
     try:
         state = _global_state()
         state["mode"] = "performance"
-        osc_ok = bool(wpe_dashboard.osc_start())
+        state["show_running"] = True
+        performance_engine.STATE["show_running"] = True
+        osc_ok = bool(performance_engine.start_osc_receiver())
         cam = cinematic_camera.start_camera(speed=1200.0, num_points=8, loop=True)
         cam_ok = bool(cam.get("ok"))
+        cur, nxt, _idx = _current_and_next_world()
         if not cam_ok:
-            # Still arm OSC even if camera fails — show can proceed.
             return _friendly(
                 True,
                 "Show started. Camera needs a moment — try New Camera Path.",
-                osc=osc_ok, camera=False)
-        return _friendly(True, "Show started — you are live.", osc=osc_ok, camera=True)
+                osc=osc_ok, camera=False, show_running=True,
+                current_world=cur, next_world=nxt)
+        return _friendly(
+            True, "Show started — you are live.",
+            osc=osc_ok, camera=True, show_running=True,
+            current_world=cur, next_world=nxt)
     except Exception:
-        return _friendly(False, "Something went wrong — try again.")
+        return _friendly(False, "Could not connect — check your setup")
 
 
 def action_next_world() -> dict:
     try:
-        if not wpe_dashboard.setlist():
+        sl = performance_engine.STATE.get("setlist") or []
+        if not sl:
             return _friendly(False, "Add worlds to your setlist first.")
-        ok = bool(wpe_dashboard.next_world())
+        ok = bool(performance_engine.load_next_world())
+        cur, nxt, _idx = _current_and_next_world()
         if ok:
-            return _friendly(True, "Moving to the next world...")
+            return _friendly(True, "Moving to the next world...", current_world=cur, next_world=nxt)
         return _friendly(False, "Could not change worlds — try again.")
     except Exception:
-        return _friendly(False, "Something went wrong — try again.")
+        return _friendly(False, "Could not connect — check your setup")
 
 
 def action_new_camera_path() -> dict:
     try:
-        # Fresh path + restart travel so the artist always sees motion.
         cinematic_camera.stop_camera()
         path = cinematic_camera.randomize_path(num_points=8)
         if not path.get("ok"):
             return _friendly(False, "Could not build a camera path — try again.")
         cam = cinematic_camera.start_camera(speed=1200.0, num_points=8, loop=True)
         if cam.get("ok"):
-            return _friendly(True, "New camera path ready.")
+            return _friendly(True, "New camera path ready.", camera=True)
         return _friendly(False, "Path ready, but camera could not start — try again.")
     except Exception:
-        return _friendly(False, "Something went wrong — try again.")
+        return _friendly(False, "Could not connect — check your setup")
 
 
 def action_stop_show() -> dict:
     try:
         state = _global_state()
         state["mode"] = "author"
+        state["show_running"] = False
+        performance_engine.STATE["show_running"] = False
         try:
-            wpe_dashboard.osc_stop()
+            performance_engine.stop_osc_receiver()
         except Exception:
             pass
         try:
             cinematic_camera.stop_camera()
         except Exception:
             pass
-        return _friendly(True, "Show stopped.")
+        return _friendly(True, "Show stopped.", show_running=False, camera=False)
     except Exception:
-        return _friendly(False, "Something went wrong — try again.")
+        return _friendly(False, "Could not connect — check your setup")
 
 
 def action_status() -> dict:
@@ -349,14 +386,14 @@ def action_status() -> dict:
     try:
         state = _global_state()
         st = wpe_dashboard.status()
-        mon = wpe_dashboard.monitor()
         cam_on = bool(cinematic_camera.STATE.get("playing"))
-        osc_active = bool(mon.get("osc_active"))
-        # "Connected" if OSC server is listening; Ableton may or may not be sending yet.
-        last_addr = str(mon.get("last_address") or "")
+        osc_active = bool(performance_engine.STATE.get("osc_receiver_active"))
+        last_addr = str(performance_engine.STATE.get("last_osc_address") or "")
         ableton_live = osc_active and bool(last_addr)
+        show_running = bool(performance_engine.STATE.get("show_running")) or bool(state.get("show_running"))
+        cur, nxt, idx = _current_and_next_world()
+        params = dict(performance_engine.STATE.get("current_param_values") or {})
         lib = action_library()
-        sl = action_setlist_get()
         return _friendly(
             True,
             "ok",
@@ -364,22 +401,25 @@ def action_status() -> dict:
             phase=_phase_label(state),
             progress_pct=float(st.get("progress_pct") or 0.0),
             last_prompt=st.get("last_prompt") or "",
-            current_world=mon.get("current_world") or "",
+            current_world=cur,
+            next_world=nxt,
+            current_index=idx,
+            show_running=show_running,
             osc_active=osc_active,
             ableton_live=ableton_live,
             osc_label=("Ableton Connected" if ableton_live
                        else ("Waiting for Ableton..." if osc_active else "Show not started")),
             camera_on=cam_on,
-            params=mon.get("params") or {},
+            params=params,
             worlds=lib.get("worlds") or [],
-            setlist=sl.get("setlist") or [],
-            saved_setlists=sl.get("saved") or [],
+            setlist=_setlist_snapshot(),
+            saved_setlists=_saved_setlists(),
             map_sizes=list(MAP_SIZE_CHOICES.keys()),
             moods=list(MOOD_KEYWORDS.keys()),
             weathers=[w[0] for w in WEATHER_CHOICES],
         )
     except Exception:
-        return _friendly(False, "Something went wrong — try again.")
+        return _friendly(False, "Could not connect — check your setup")
 
 
 def handle_rpc(op: str, payload: dict = None) -> dict:

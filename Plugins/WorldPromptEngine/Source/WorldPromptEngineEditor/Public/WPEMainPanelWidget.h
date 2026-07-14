@@ -5,7 +5,7 @@
 #include "WPEMainPanelWidget.generated.h"
 
 class UWebBrowser;
-class UVerticalBox;
+class UOverlay;
 
 /**
  * Dockable guided panel host. Builds a full-bleed WebBrowser that loads
@@ -23,11 +23,21 @@ public:
 	void LoadPanelHtml(const FString& AbsoluteHtmlPath);
 
 	virtual void NativeConstruct() override;
+	virtual TSharedRef<SWidget> RebuildWidget() override;
 
 protected:
 	UPROPERTY(Transient)
 	TObjectPtr<UWebBrowser> Browser = nullptr;
 
+	UPROPERTY(Transient)
+	TObjectPtr<UOverlay> RootOverlay = nullptr;
+
 	void EnsureBrowser();
 	FString ResolveDefaultHtmlPath() const;
+	bool TryLoadHtmlIntoBrowser(const FString& AbsoluteHtmlPath);
+	bool DeferredLoadTick(float DeltaTime);
+
+	FString PendingHtmlPath;
+	int32 LoadRetryCount = 0;
+	bool bLoadTickerActive = false;
 };
