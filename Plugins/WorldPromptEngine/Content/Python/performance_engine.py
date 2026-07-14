@@ -8,6 +8,8 @@ NO generation code is called here. Pre-built worlds only.
   UDP fallback if OSC plugin bindings are unavailable).
 - Per-parameter EnvelopeFollower smoothing (fast attack, slow release).
 - Tick-based live parameter application to fog / lights / MPC / Niagara.
+  NiagaraActors using NS_WPE_* under /Game/WorldPromptEngine/VFX/ respond to
+  OSC highs via User.SpawnRateMultiplier (0.5 + 1.5 * highs).
 - Non-blocking fog-in / load / fog-out world transitions (tick generators).
 - Setlist management with JSON persistence.
 """

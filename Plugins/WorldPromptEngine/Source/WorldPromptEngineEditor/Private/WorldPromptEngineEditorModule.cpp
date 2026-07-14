@@ -1,6 +1,7 @@
 #include "WorldPromptEngineEditorModule.h"
 #include "WPEWorldGeneratorSubsystem.h"
 #include "WPEWorldScaleSettings.h"
+#include "WPENiagaraVfxLibrary.h"
 #include "Editor.h"
 #include "ToolMenus.h"
 
@@ -58,6 +59,16 @@ void FWorldPromptEngineEditorModule::StartupModule()
 			LOCTEXT("WPEBuildPlanTT", "Create the C++ tile plan for huge World Partition worlds"),
 			FSlateIcon(),
 			FUIAction(FExecuteAction::CreateStatic(&WPE_BuildDefaultPlan))
+		);
+		Section.AddMenuEntry(
+			"WPE_CreateVfx",
+			LOCTEXT("WPECreateVfx", "Create Performance Mode Niagara VFX"),
+			LOCTEXT("WPECreateVfxTT", "Create NS_WPE_* systems under /Game/WorldPromptEngine/VFX with User.SpawnRateMultiplier"),
+			FSlateIcon(),
+			FUIAction(FExecuteAction::CreateLambda([]()
+			{
+				UWPENiagaraVfxLibrary::CreateAllWpeVfxSystems(false);
+			}))
 		);
 	}));
 }

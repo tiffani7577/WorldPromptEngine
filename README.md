@@ -47,6 +47,8 @@ Also: **Tools → World Prompt Engine (Native) → Build Native World Tile Plan*
 
 **Power now:** 26 terrain archetypes · 38 weather presets · structure_forge (6 families: keep/ruin/crystal/megalith/hut/arch) · 35+ structure types wired through the manifest · native tile planner · **Performance Mode** (OSC port 8000, setlists, fog crossfades, 6-channel live music reactivity) · world library save/load · Ableton OSC bridge.
 
+Performance Mode Niagara VFX live under `/Game/WorldPromptEngine/VFX/` (`NS_WPE_BioBioluminescent`, `NS_WPE_Mist`, `NS_WPE_Embers`, `NS_WPE_OceanSpray`, `NS_WPE_CrystalShimmer`). Place them as `NiagaraActor`s; OSC **highs** drives `User.SpawnRateMultiplier` via `performance_engine.py`. Recreate anytime: **Tools → World Prompt Engine → Create Performance Mode Niagara VFX**.
+
 Optional bake (in editor Python):
 
 ```python

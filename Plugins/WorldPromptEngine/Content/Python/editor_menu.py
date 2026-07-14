@@ -62,6 +62,15 @@ def register_menus():
             ("WPE_Preforge", "Advanced: Prefabricate Structure Meshes",
              "Optional bake for castles/ruins (Geometry Script) or proxy shapes.",
              "import init_unreal; unreal.log(str(init_unreal.preforge_structures()))"),
+            ("WPE_CineRandomize", "Cinematic: Randomize Camera Path",
+             "Destroys prior WPE cinematic actors, then spawns a fresh USplineComponent path.",
+             "import cinematic_camera, unreal; unreal.log(str(cinematic_camera.randomize_path()))"),
+            ("WPE_CineStart", "Cinematic: Start Camera Fly-Through",
+             "Cleans prior WPE cinematic actors, then flies along a USplineComponent path.",
+             "import cinematic_camera, unreal; unreal.log(str(cinematic_camera.start_camera()))"),
+            ("WPE_CineStop", "Cinematic: Stop Camera",
+             "Stops the fly-through tick (actors remain until next randomize/start).",
+             "import cinematic_camera; cinematic_camera.stop_camera()"),
         ]
 
         for name, label, tip, py in commands:

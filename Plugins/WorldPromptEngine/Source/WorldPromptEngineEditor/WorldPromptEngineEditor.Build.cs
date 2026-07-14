@@ -26,7 +26,11 @@ public class WorldPromptEngineEditor : ModuleRules
 			"ToolMenus",
 			"Projects",
 			"Json",
-			"JsonUtilities"
+			"JsonUtilities",
+			"Niagara",
+			"NiagaraCore",
+			"NiagaraEditor",
+			"AssetRegistry"
 		});
 	}
 }

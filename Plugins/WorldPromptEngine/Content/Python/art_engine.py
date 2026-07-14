@@ -296,6 +296,13 @@ def generate_heightmap_task(state: dict, params: dict):
         state["is_generating"] = True
         state["progress"] = 0.0
 
+        # Drop cinematic fly-through actors so they never stack across worlds.
+        try:
+            import cinematic_camera
+            cinematic_camera.on_world_generation_begin()
+        except Exception as cine_e:
+            unreal.log_warning("WorldPromptEngine: cinematic cleanup skipped: {}".format(cine_e))
+
         if noise_type == "simplex":
             simplex = SimplexNoise2D(seed)
 
