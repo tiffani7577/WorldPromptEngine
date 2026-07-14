@@ -858,6 +858,10 @@ def execute_command(state: dict, command):
         unreal.log_error("art_engine.execute_command failed: {}".format(e))
 
 
+# Prevent nested next(generator) when Landscape/material ops pump Slate ticks.
+_CONSUME_TICK_DEPTH = 0
+
+
 def consume_queue_tick(state: dict, delta_seconds: float):
     """
     Slate post-tick callback body. MAIN THREAD ONLY.
@@ -866,6 +870,12 @@ def consume_queue_tick(state: dict, delta_seconds: float):
     2. Advance the active generator task under its own 8 ms budget
        (the generator self-yields on budget overrun).
     """
+    global _CONSUME_TICK_DEPTH
+    if _CONSUME_TICK_DEPTH > 0:
+        # Heavy unreal ops inside a yield (SavePackage, SetHeightData, etc.)
+        # re-enter the Slate tick; never call next() on the same generator.
+        return
+    _CONSUME_TICK_DEPTH += 1
     try:
         queue = state["command_queue"]
         # Drain a bounded number per frame to avoid pathological floods
@@ -888,6 +898,8 @@ def consume_queue_tick(state: dict, delta_seconds: float):
                 unreal.log_error("WorldPromptEngine: task crashed: {}".format(task_e))
     except Exception as e:
         unreal.log_error("art_engine.consume_queue_tick failed: {}".format(e))
+    finally:
+        _CONSUME_TICK_DEPTH -= 1
 
 
 # ---------------------------------------------------------------------------

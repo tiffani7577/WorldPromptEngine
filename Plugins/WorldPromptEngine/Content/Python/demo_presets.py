@@ -47,6 +47,14 @@ def run_preset(name: str) -> dict:
         prompt = spec["prompt"]
         seed = int(spec["seed"])
         size = int(spec["size"])
+        # Drop a stuck prior job so a second demo click always starts clean.
+        if init_unreal.GLOBAL_STATE.get("is_generating"):
+            unreal.log_warning(
+                "WorldPromptEngine: cancelling in-progress generation for demo '{}'".format(
+                    spec["label"]))
+            init_unreal.GLOBAL_STATE["active_task"] = None
+            init_unreal.GLOBAL_STATE["is_generating"] = False
+        init_unreal.GLOBAL_STATE["last_demo_prompt"] = prompt
         init_unreal.GLOBAL_STATE["command_queue"].append({
             "action": "generate_from_prompt",
             "prompt": prompt,

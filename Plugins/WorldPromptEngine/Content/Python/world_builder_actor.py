@@ -204,6 +204,7 @@ class WorldPromptBuilder(unreal.Actor):
     def step0a_demo_alpine_sunset(self):
         try:
             import demo_presets
+            self.set_editor_property("prompt_text", demo_presets.PRESETS["alpine_sunset"]["prompt"])
             demo_presets.run_alpine()
         except Exception as e:
             unreal.log_error("DEMO Alpine failed: {}".format(e))
@@ -217,6 +218,7 @@ class WorldPromptBuilder(unreal.Actor):
     def step0b_demo_underwater(self):
         try:
             import demo_presets
+            self.set_editor_property("prompt_text", demo_presets.PRESETS["underwater"]["prompt"])
             demo_presets.run_underwater()
         except Exception as e:
             unreal.log_error("DEMO Underwater failed: {}".format(e))
@@ -230,6 +232,7 @@ class WorldPromptBuilder(unreal.Actor):
     def step0c_demo_desert_moon(self):
         try:
             import demo_presets
+            self.set_editor_property("prompt_text", demo_presets.PRESETS["desert_moon"]["prompt"])
             demo_presets.run_desert()
         except Exception as e:
             unreal.log_error("DEMO Desert failed: {}".format(e))

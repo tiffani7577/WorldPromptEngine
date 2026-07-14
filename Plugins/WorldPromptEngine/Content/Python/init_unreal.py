@@ -78,11 +78,48 @@ def _post_tick(delta_seconds: float):
         unreal.log_error("WorldPromptEngine._post_tick failed: {}".format(e))
 
 
+
+def _force_mac_editor_visible():
+    """Mac: recover when Level Editor opens off-space after monitor changes."""
+    try:
+        world = None
+        try:
+            world = unreal.EditorLevelLibrary.get_editor_world()
+        except Exception:
+            world = None
+        # Console commands that reload a known-good single-window layout
+        for cmd in (
+            "LoadDefaultLayout",
+            "Editor.LoadDefaultLayout",
+            "MainFrame.LoadDefaultLayout",
+        ):
+            try:
+                unreal.SystemLibrary.execute_console_command(world, cmd)
+                unreal.log("WorldPromptEngine: tried {}".format(cmd))
+            except Exception:
+                pass
+    except Exception as e:
+        unreal.log_warning("WorldPromptEngine: mac window recover failed: {}".format(e))
+
+
+_MAC_VISIBLE_FRAMES = {"n": 0}
+
+def _mac_visible_tick(delta_seconds: float):
+    try:
+        _MAC_VISIBLE_FRAMES["n"] += 1
+        # Run once ~2s after editor is up
+        if _MAC_VISIBLE_FRAMES["n"] == 120:
+            _force_mac_editor_visible()
+    except Exception:
+        pass
+
+
 def _register_tick():
     global _TICK_HANDLE
     try:
         if hasattr(unreal, "register_slate_post_tick_callback"):
             _TICK_HANDLE = unreal.register_slate_post_tick_callback(_post_tick)
+            unreal.register_slate_post_tick_callback(_mac_visible_tick)
             unreal.log("WorldPromptEngine: Slate post-tick callback registered")
         else:
             unreal.log_error("WorldPromptEngine: register_slate_post_tick_callback unavailable")
