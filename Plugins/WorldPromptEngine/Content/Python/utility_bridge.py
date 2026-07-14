@@ -70,6 +70,8 @@ VALID_ACTIONS = frozenset({
     "save_world",
     "load_setlist",
     "save_setlist",
+    # Guided main panel
+    "panel_rpc",
 })
 
 # Read-only queries answered inline by the bridge thread (dict reads are
@@ -203,15 +205,40 @@ def _ws_encode_pong(payload: bytes) -> bytes:
 # Command validation + enqueue
 # ---------------------------------------------------------------------------
 
+async def _enqueue_panel_rpc(payload: dict) -> dict:
+    """Enqueue panel_rpc and wait briefly for the main-thread reply."""
+    import time
+    import uuid
+    req_id = str(uuid.uuid4())
+    payload = dict(payload)
+    payload["request_id"] = req_id
+    replies = _STATE.setdefault("panel_rpc_replies", {})
+    _STATE["command_queue"].append(payload)
+    deadline = time.time() + 8.0
+    while time.time() < deadline:
+        if req_id in replies:
+            result = replies.pop(req_id)
+            if not isinstance(result, dict):
+                result = {"ok": False, "message": "Something went wrong — try again."}
+            else:
+                result = dict(result)
+            result["request_id"] = req_id
+            return result
+        await asyncio.sleep(0.03)
+    return {"ok": False, "message": "Something went wrong — try again.", "request_id": req_id}
+
+
 def _enqueue(raw_text: str) -> dict:
     """Validate the JSON payload and push onto the shared deque. Returns ack."""
     try:
         payload = json.loads(raw_text)
         action = payload.get("action", "")
         if action not in VALID_ACTIONS:
-            return {"ok": False, "error": "unknown action '{}'".format(action)}
+            return {"ok": False, "error": "unknown action '{}'".format(action),
+                    "message": "Something went wrong — try again."}
         if _STATE is None:
-            return {"ok": False, "error": "bridge state not initialized"}
+            return {"ok": False, "error": "bridge state not initialized",
+                    "message": "Something went wrong — try again."}
 
         # Read-only queries: answer immediately without touching unreal APIs.
         if action in _QUERY_ACTIONS:
@@ -231,7 +258,12 @@ def _enqueue(raw_text: str) -> dict:
                         "current_index": performance_engine.STATE["current_setlist_index"],
                     }
             except Exception as e:
-                return {"ok": False, "error": str(e)}
+                return {"ok": False, "error": str(e),
+                        "message": "Something went wrong — try again."}
+
+        # panel_rpc is handled async in _handle_client (waits for main-thread reply)
+        if action == "panel_rpc":
+            return {"__panel_rpc__": True, "payload": payload}
 
         # Push the raw dict — deque.append() is thread-safe (GIL-atomic).
         _STATE["command_queue"].append(payload)
@@ -243,10 +275,12 @@ def _enqueue(raw_text: str) -> dict:
             "progress": float(_STATE.get("progress", 0.0)),
         }
     except json.JSONDecodeError as e:
-        return {"ok": False, "error": "invalid JSON: {}".format(e)}
+        return {"ok": False, "error": "invalid JSON: {}".format(e),
+                "message": "Something went wrong — try again."}
     except Exception as e:
         _log_error("utility_bridge._enqueue failed: {}".format(e))
-        return {"ok": False, "error": str(e)}
+        return {"ok": False, "error": str(e),
+                "message": "Something went wrong — try again."}
 
 
 # ---------------------------------------------------------------------------
@@ -273,6 +307,8 @@ async def _handle_client(reader: asyncio.StreamReader, writer: asyncio.StreamWri
                 continue
 
             ack = _enqueue(msg)
+            if isinstance(ack, dict) and ack.get("__panel_rpc__"):
+                ack = await _enqueue_panel_rpc(ack["payload"])
             writer.write(_ws_encode_text(json.dumps(ack)))
             await writer.drain()
     except Exception as e:

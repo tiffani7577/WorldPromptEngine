@@ -79,7 +79,7 @@ def generate(prompt_text, map_size=2048, roughness=0.5, foliage_density=0.5):
         foliage_density = max(0.0, min(1.0, float(foliage_density)))
         state["last_prompt"] = prompt_text
         state.setdefault("command_queue", []).append({
-            "command": "generate_world",
+            "action": "generate_world",
             "payload": {
                 "prompt": prompt_text,
                 "map_size": map_size,

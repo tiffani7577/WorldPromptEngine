@@ -30,7 +30,11 @@ public class WorldPromptEngineEditor : ModuleRules
 			"Niagara",
 			"NiagaraCore",
 			"NiagaraEditor",
-			"AssetRegistry"
+			"AssetRegistry",
+			"UMG",
+			"Blutility",
+			"WebBrowser",
+			"WebBrowserWidget"
 		});
 	}
 }

@@ -295,6 +295,7 @@ def generate_heightmap_task(state: dict, params: dict):
 
         state["is_generating"] = True
         state["progress"] = 0.0
+        state["current_phase"] = "Building terrain..."
 
         # Drop cinematic fly-through actors so they never stack across worlds.
         try:
@@ -371,6 +372,7 @@ def generate_heightmap_task(state: dict, params: dict):
 
         # Multi-biome Voronoi regional masks
         state["progress"] = 0.86
+        state["current_phase"] = "Placing assets..."
         yield True
         try:
             import biome_regions
@@ -471,6 +473,7 @@ def generate_heightmap_task(state: dict, params: dict):
 
         # Atmosphere from prompt (sun / fog / sky / post) — always hide sky spheres
         state["progress"] = 0.96
+        state["current_phase"] = "Configuring sky..."
         yield True
         try:
             import atmosphere_control
@@ -608,11 +611,13 @@ def generate_heightmap_task(state: dict, params: dict):
             pass
 
         state["progress"] = 1.0
+        state["current_phase"] = "Done!"
         state["is_generating"] = False
         if _HAS_UNREAL:
             unreal.log("WorldPromptEngine: heightmap generation complete ({}x{})".format(width, height))
     except Exception as e:
         state["is_generating"] = False
+        state["current_phase"] = "Something went wrong — try again."
         unreal.log_error("art_engine.generate_heightmap_task failed: {}".format(e))
 
 
@@ -862,17 +867,36 @@ def execute_command(state: dict, command):
         elif action == "generate_world":
             # Dashboard-shaped payload: {"payload": {prompt, map_size, roughness, foliage_density}}
             p = payload.get("payload") or payload.get("params") or {}
+            raw_size = int(p.get("map_size", 505))
+            # Map artist-facing sizes to landscape-friendly odd resolutions.
+            size_map = {1024: 1009, 2048: 2017, 4096: 4033}
+            px = size_map.get(raw_size, max(127, min(4033, raw_size)))
+            foliage = float(p.get("foliage_density", 0.5))
+            if raw_size >= 4096:
+                foliage = max(foliage, 0.75)
             forwarded = {
                 "action": "generate_from_prompt",
                 "prompt": p.get("prompt", ""),
                 "params": {
-                    "width": min(1009, max(127, int(p.get("map_size", 505)))),
-                    "height": min(1009, max(127, int(p.get("map_size", 505)))),
+                    "width": px,
+                    "height": px,
                     "roughness": float(p.get("roughness", 0.5)),
-                    "foliage_density": float(p.get("foliage_density", 0.5)),
+                    "foliage_density": foliage,
                 },
             }
+            state["current_phase"] = "Building terrain..."
             execute_command(state, forwarded)
+        elif action == "panel_rpc":
+            import wpe_main_panel
+            op = payload.get("op") or ""
+            args = dict(payload)
+            req_id = args.pop("request_id", None)
+            args.pop("action", None)
+            args.pop("op", None)
+            result = wpe_main_panel.handle_rpc(op, args)
+            state["last_panel_rpc"] = result
+            if req_id:
+                state.setdefault("panel_rpc_replies", {})[req_id] = result
         elif action == "save_world":
             import world_library
             name = payload.get("world_name") or (payload.get("params") or {}).get("world_name") or "Untitled"

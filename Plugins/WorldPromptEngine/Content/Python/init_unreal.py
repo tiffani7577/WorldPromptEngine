@@ -472,6 +472,35 @@ def _boot():
             wpe_dashboard.initialize()
         except Exception as e:
             unreal.log_error("WorldPromptEngine: dashboard init failed: {}".format(e))
+        try:
+            import wpe_main_panel
+            # Delay ~45 frames so EditorUtilitySubsystem / layout are ready, then open once.
+            _panel_frames = {"n": 0, "handle": None, "done": False}
+
+            def _delayed_open(_dt):
+                if _panel_frames["done"]:
+                    return
+                _panel_frames["n"] += 1
+                if _panel_frames["n"] < 45:
+                    return
+                _panel_frames["done"] = True
+                try:
+                    wpe_main_panel.initialize()
+                except Exception as pe:
+                    unreal.log_error("WorldPromptEngine: main panel open failed: {}".format(pe))
+                try:
+                    handle = _panel_frames.get("handle")
+                    if handle is not None and hasattr(unreal, "unregister_slate_post_tick_callback"):
+                        unreal.unregister_slate_post_tick_callback(handle)
+                except Exception:
+                    pass
+
+            if hasattr(unreal, "register_slate_post_tick_callback"):
+                _panel_frames["handle"] = unreal.register_slate_post_tick_callback(_delayed_open)
+            else:
+                wpe_main_panel.initialize()
+        except Exception as e:
+            unreal.log_error("WorldPromptEngine: main panel init failed: {}".format(e))
         # Touch the uclass so Unreal registers WorldPromptBuilder for spawning
         _ = world_builder_actor.WorldPromptBuilder
         unreal.log(
