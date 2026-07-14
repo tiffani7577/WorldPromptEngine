@@ -24,7 +24,9 @@ public class WorldPromptEngineEditor : ModuleRules
 			"Slate",
 			"SlateCore",
 			"ToolMenus",
-			"Projects"
+			"Projects",
+			"Json",
+			"JsonUtilities"
 		});
 	}
 }

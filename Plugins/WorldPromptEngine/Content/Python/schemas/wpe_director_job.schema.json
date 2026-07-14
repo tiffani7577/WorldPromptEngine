@@ -1,0 +1,71 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "WPEDirectorJob",
+  "description": "Versioned World Prompt Engine Director job. No runtime AI-generated Python. Terrain apply uses existing UWPEWorldGeneratorSubsystem.ApplyHeightmapToLandscape.",
+  "type": "object",
+  "required": ["schema_version", "prompt", "seed"],
+  "additionalProperties": true,
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "action": { "type": "string", "default": "generate_world" },
+    "prompt": { "type": "string", "minLength": 1 },
+    "seed": { "type": "integer" },
+    "allow_procedural_fallback": { "type": "boolean", "default": true },
+    "prefer_landscape": { "type": "boolean", "default": true },
+    "params": {
+      "type": "object",
+      "description": "Legacy panel generate_from_prompt bag (width/height/seed/...)."
+    },
+    "terrain": {
+      "type": "object",
+      "properties": {
+        "resolution_x": { "type": "integer", "minimum": 2 },
+        "resolution_y": { "type": "integer", "minimum": 2 },
+        "frequency": { "type": "number" },
+        "octaves": { "type": "integer", "minimum": 1, "maximum": 16 },
+        "persistence": { "type": "number" },
+        "lacunarity": { "type": "number" },
+        "apply_erosion": { "type": "boolean" },
+        "thermal_iterations": { "type": "integer", "minimum": 0 },
+        "hydraulic_iterations": { "type": "integer", "minimum": 0 }
+      }
+    },
+    "biome": {
+      "type": "object",
+      "properties": {
+        "region_count": { "type": "integer", "minimum": 1 },
+        "snowline": { "type": "number", "minimum": 0, "maximum": 1 },
+        "rock_slope_threshold": { "type": "number", "minimum": 0, "maximum": 1 },
+        "wetness": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "foliage": {
+      "type": "object",
+      "properties": {
+        "enabled": { "type": "boolean" },
+        "use_hism": { "type": "boolean" },
+        "density": { "type": "number", "minimum": 0 },
+        "max_slope_degrees": { "type": "number", "minimum": 0, "maximum": 90 },
+        "min_altitude_01": { "type": "number", "minimum": 0, "maximum": 1 },
+        "max_altitude_01": { "type": "number", "minimum": 0, "maximum": 1 },
+        "cluster_strength": { "type": "number", "minimum": 0, "maximum": 1 }
+      }
+    },
+    "material": {
+      "type": "object",
+      "properties": {
+        "landscape_material_path": { "type": "string" },
+        "mpc_path": { "type": "string" },
+        "macro_scale": { "type": "number" }
+      }
+    },
+    "atmosphere": {
+      "type": "object",
+      "properties": {
+        "weather_preset": { "type": "string" },
+        "ensure_lighting": { "type": "boolean" },
+        "hide_sky_spheres": { "type": "boolean" }
+      }
+    }
+  }
+}

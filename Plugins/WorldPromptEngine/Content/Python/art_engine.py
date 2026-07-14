@@ -16,6 +16,9 @@ UE 5.8 API notes:
     AutomatedAssetImportData or LandscapeSubsystem reflection. The legacy
     unreal.LandscapeEditorObject.import_landscape_data() is REMOVED in 5.8
     and is never referenced here.
+  - After noise: terrain_erosion (thermal + hydraulic) carves ridges/channels.
+  - landscape_materials builds Grass/Rock/Snow weightmaps from slope (<30° grass).
+  - pcg_ecosystem spawns PCGVolume + clustered kit foliage (valley bias).
   - PCG access uses unreal.PCGComponent / unreal.PCGGraphInterface via the
     subsystem pattern (5.7+).
   - All unreal.* calls are guarded with hasattr() probes where the API
@@ -337,6 +340,64 @@ def generate_heightmap_task(state: dict, params: dict):
                     yield True
                     slice_start = time.perf_counter()
 
+        # Thermal + hydraulic erosion (ridges / drainage channels)
+        state["progress"] = 0.78
+        yield True
+        try:
+            import terrain_erosion
+            prompt_text = params.get("prompt") or ""
+            if "moisture" not in params:
+                params["moisture"] = terrain_erosion.moisture_from_prompt(prompt_text)
+            state["moisture"] = float(params.get("moisture", 0.5))
+            ero_params = dict(params)
+            ero_gen = terrain_erosion.apply_erosion_budgeted(
+                pixels, width, height, ero_params, budget_ms=FRAME_BUDGET_MS)
+            for item in ero_gen:
+                if item[0] == "result":
+                    pixels = item[1]
+                    state["last_height_pixels"] = pixels
+                elif item[0] == "progress":
+                    state["progress"] = 0.78 + float(item[1]) * 0.08
+                    yield True
+        except Exception as ero_e:
+            unreal.log_warning("WorldPromptEngine: erosion pass skipped: {}".format(ero_e))
+
+        # Multi-biome Voronoi regional masks
+        state["progress"] = 0.86
+        yield True
+        try:
+            import biome_regions
+            prompt_text = params.get("prompt") or ""
+            primary = None
+            if state.get("last_parse"):
+                primary = state["last_parse"].get("archetype")
+            biomes = params.get("biomes") or biome_regions.rank_biomes_from_prompt(
+                prompt_text, primary=primary, max_regions=int(params.get("biome_count", 3)))
+            regions = biome_regions.generate_voronoi_regions(
+                width, height, biomes,
+                seed=int(params.get("seed", 1337)),
+                blend=float(params.get("biome_blend", 0.14)))
+            if params.get("biome_height_bias", True):
+                pixels = biome_regions.apply_biome_height_bias(pixels, width, height, regions)
+            state["biome_regions"] = regions
+            state["biome_mask_summary"] = biome_regions.build_biome_mask_summary(regions, width, height)
+            state["last_height_pixels"] = pixels
+        except Exception as bio_e:
+            unreal.log_warning("WorldPromptEngine: biome regions skipped: {}".format(bio_e))
+
+        # Rivers / trails: A* path + heightmap carving
+        state["progress"] = 0.88
+        yield True
+        try:
+            import spline_carving
+            carve_params = dict(params)
+            carve_params.setdefault("moisture", state.get("moisture", 0.5))
+            routes = spline_carving.generate_and_carve_routes(pixels, width, height, carve_params)
+            state["last_routes"] = routes
+            state["last_height_pixels"] = pixels
+        except Exception as route_e:
+            unreal.log_warning("WorldPromptEngine: spline carve skipped: {}".format(route_e))
+
         # Slope-angle material map (budget-driven via prompt_matrix generator)
         if params.get("compute_slopes", True):
             slope_gen = prompt_matrix.compute_slope_map(
@@ -364,6 +425,67 @@ def generate_heightmap_task(state: dict, params: dict):
 
         _import_heightmap_5_8(state, png_path, params)
 
+        # VISIBLE terrain: reshape Landscape or spawn WPE_Terrain mesh
+        state["progress"] = 0.955
+        yield True
+        try:
+            import landscape_apply
+            apply_params = dict(params)
+            # Underwater / desert height amp tweaks for readable silhouette
+            arch = (state.get("last_parse") or {}).get("archetype") or ""
+            if "underwater" in arch or "coral" in arch:
+                apply_params.setdefault("terrain_height_amp", 900.0)
+            elif "desert" in arch or "dune" in arch:
+                apply_params.setdefault("terrain_height_amp", 1100.0)
+            elif "alpine" in arch or "glacier" in arch:
+                apply_params.setdefault("terrain_height_amp", 2800.0)
+            else:
+                apply_params.setdefault("terrain_height_amp", 1800.0)
+            apply_params["prompt"] = params.get("prompt") or ""
+            apply_params["archetype"] = arch
+            # Demo / generate UX: keep ProceduralMesh fallback so empty voids never happen.
+            # Stage 1 validate sets allow_procedural_fallback=False explicitly.
+            apply_params.setdefault("allow_procedural_fallback", True)
+            apply_params.setdefault("prefer_landscape", True)
+            # Airtight surface materials before mesh assign
+            try:
+                import auto_surface_blend
+                state["last_airtight"] = auto_surface_blend.ensure_airtight_stack(
+                    prompt=apply_params["prompt"], archetype=arch)
+            except Exception as at_e:
+                unreal.log_warning("airtight surface skipped: {}".format(at_e))
+            state["last_terrain_apply"] = landscape_apply.apply_heightmap_to_level(
+                state, pixels, width, height, apply_params)
+            # stash amp for foliage/proxy alignment
+            params["terrain_height_amp"] = float(apply_params.get("terrain_height_amp", 1800.0))
+            params["archetype"] = arch
+        except Exception as apply_e:
+            unreal.log_warning("WorldPromptEngine: terrain apply skipped: {}".format(apply_e))
+
+        # Atmosphere from prompt (sun / fog / sky / post) — always hide sky spheres
+        state["progress"] = 0.96
+        yield True
+        try:
+            import atmosphere_control
+            import underwater_world
+            underwater_world.hide_conflicting_sky_domes(state)
+            atm = atmosphere_control.apply_from_prompt(
+                params.get("prompt") or "",
+                preset_name=(state.get("last_parse") or {}).get("weather"))
+            state["last_atmosphere"] = atm
+        except Exception as atm_e:
+            unreal.log_warning("WorldPromptEngine: atmosphere skipped: {}".format(atm_e))
+            try:
+                prompt_matrix.apply_weather_preset(
+                    (state.get("last_parse") or {}).get("weather") or "clear_noon")
+            except Exception:
+                pass
+            try:
+                import underwater_world
+                underwater_world.hide_conflicting_sky_domes(state)
+            except Exception:
+                pass
+
         # Structures (real meshes or BasicShapes proxies)
         state["progress"] = 0.97
         yield True
@@ -375,6 +497,102 @@ def generate_heightmap_task(state: dict, params: dict):
             structure_library.spawn_structures(state, pixels, width, height, params_struct)
         except Exception as struct_e:
             unreal.log_warning("WorldPromptEngine: structure pass skipped: {}".format(struct_e))
+
+        # Slope weightmaps + landscape material (grass <30°, rock steep)
+        state["progress"] = 0.978
+        yield True
+        try:
+            import landscape_materials
+            mat_params = dict(params)
+            mat_params.setdefault("grass_max_slope", 30.0)
+            state["last_material_summary"] = landscape_materials.apply_slope_materials(
+                state, pixels, width, height, mat_params)
+        except Exception as mat_e:
+            unreal.log_warning("WorldPromptEngine: slope materials skipped: {}".format(mat_e))
+
+        # Arrange user-picked Fab/kit meshes (clustered valleys when possible)
+        state["progress"] = 0.985
+        yield True
+        try:
+            import kit_library
+            params_kit = dict(params)
+            params_kit.setdefault("spawn_kit", True)
+            params_kit.setdefault("cluster_foliage", True)
+            params_kit.setdefault("use_hism", True)
+            params_kit.setdefault("moisture", state.get("moisture", params.get("moisture", 0.5)))
+            kit_summary = kit_library.arrange_kit_in_level(state, pixels, width, height, params_kit)
+            state["last_kit_summary"] = kit_summary
+            # Prefer native terrain-aware HISM; fall back to foliage_fast Python path.
+            try:
+                import wpe_foliage_bridge
+                ff = dict(params_kit)
+                ff.setdefault("terrain_height_amp", float(params.get("terrain_height_amp", 1800.0)))
+                ff.setdefault("foliage_density", 1.25 if "rainforest" in str(params.get("archetype", "")) or "forest" in (params.get("prompt") or "").lower() else 1.0)
+                state["last_fast_foliage"] = wpe_foliage_bridge.scatter_from_height_pixels(
+                    pixels, width, height, ff)
+            except Exception as ff_e:
+                try:
+                    import foliage_fast
+                    ff = dict(params_kit)
+                    ff.setdefault("terrain_height_amp", float(params.get("terrain_height_amp", 1800.0)))
+                    state["last_fast_foliage"] = foliage_fast.scatter_forest(
+                        state, pixels, width, height, ff)
+                except Exception as ff2_e:
+                    unreal.log_warning("WorldPromptEngine: fast foliage skipped: {} / {}".format(ff_e, ff2_e))
+            # Drive authored MPC params (snowline / rock / wetness) without rebuilding materials.
+            try:
+                import wpe_material_bridge
+                state["last_mpc"] = wpe_material_bridge.apply_world_params(
+                    snowline=0.72, rock_slope=0.55, wetness=float(params.get("moisture", 0.35) or 0.35))
+            except Exception as mpc_e:
+                unreal.log_warning("WorldPromptEngine: MPC bridge skipped: {}".format(mpc_e))
+            # If no Fab kit, fill with BasicShapes proxies so demos aren't bare
+            if not (kit_summary or {}).get("placed") and not (state.get("last_fast_foliage") or {}).get("instances"):
+                try:
+                    import demo_fill
+                    fill_params = dict(params_kit)
+                    fill_params.setdefault(
+                        "terrain_height_amp",
+                        float(params.get("terrain_height_amp", 1800.0)))
+                    state["last_demo_fill"] = demo_fill.spawn_proxy_clusters(
+                        state, pixels, width, height, fill_params)
+                except Exception as fill_e:
+                    unreal.log_warning("WorldPromptEngine: demo fill skipped: {}".format(fill_e))
+        except Exception as kit_e:
+            unreal.log_warning("WorldPromptEngine: kit arrange skipped: {}".format(kit_e))
+            try:
+                import foliage_fast
+                state["last_fast_foliage"] = foliage_fast.scatter_forest(
+                    state, pixels, width, height, params)
+            except Exception:
+                pass
+            try:
+                import demo_fill
+                state["last_demo_fill"] = demo_fill.spawn_proxy_clusters(
+                    state, pixels, width, height, params)
+            except Exception:
+                pass
+
+        # Visible river/trail splines in editor
+        try:
+            import spline_carving
+            if state.get("last_routes"):
+                spline_carving.spawn_spline_actors(
+                    state, state["last_routes"], width, height, params)
+        except Exception as spl_e:
+            unreal.log_warning("WorldPromptEngine: spline actors skipped: {}".format(spl_e))
+
+        # PCG volume + graph link (ecosystem clustering)
+        state["progress"] = 0.992
+        yield True
+        try:
+            import pcg_ecosystem
+            pcg_params = dict(params)
+            pcg_params.setdefault("moisture", state.get("moisture", 0.5))
+            pcg_params.setdefault("spawn_pcg", True)
+            state["last_pcg_summary"] = pcg_ecosystem.spawn_pcg_ecosystem(state, pcg_params)
+        except Exception as pcg_e:
+            unreal.log_warning("WorldPromptEngine: PCG ecosystem skipped: {}".format(pcg_e))
 
         # Refresh PCG if present
         try:
@@ -581,11 +799,36 @@ def execute_command(state: dict, command):
                 prompt_matrix.apply_weather_preset(parsed["weather"])
                 merged["prompt"] = prompt
                 merged.setdefault("spawn_structures", True)
+                merged.setdefault("apply_erosion", True)
+                merged.setdefault("spawn_pcg", True)
+                merged.setdefault("use_hism", True)
+                merged.setdefault("carve_splines", True)
+                try:
+                    import biome_regions
+                    merged["biomes"] = parsed.get("biomes") or biome_regions.rank_biomes_from_prompt(
+                        prompt, primary=parsed.get("archetype"), max_regions=3)
+                except Exception:
+                    if parsed.get("biomes"):
+                        merged["biomes"] = parsed["biomes"]
+                try:
+                    import terrain_erosion
+                    merged.setdefault("moisture", terrain_erosion.moisture_from_prompt(prompt))
+                except Exception:
+                    merged.setdefault("moisture", 0.5)
+                try:
+                    import atmosphere_control
+                    state["last_atmosphere"] = atmosphere_control.apply_from_prompt(
+                        prompt, preset_name=parsed.get("weather"))
+                except Exception:
+                    pass
                 state["active_task"] = generate_heightmap_task(state, merged)
             else:
                 unreal.log_warning("WorldPromptEngine: generation already in progress; command dropped")
         elif action == "apply_weather":
             prompt_matrix.apply_weather_preset(payload.get("preset", "clear_noon"))
+        elif action in ("apply_atmosphere", "biome_status", "ensure_lighting", "setup_landscape_material"):
+            import engine_commands
+            engine_commands.handle_extended_command(state, action, payload)
         elif action == "setup_content":
             import content_library
             state["last_content_setup"] = content_library.setup_content(
@@ -615,6 +858,10 @@ def execute_command(state: dict, command):
         unreal.log_error("art_engine.execute_command failed: {}".format(e))
 
 
+# Prevent nested next(generator) when Landscape/material ops pump Slate ticks.
+_CONSUME_TICK_DEPTH = 0
+
+
 def consume_queue_tick(state: dict, delta_seconds: float):
     """
     Slate post-tick callback body. MAIN THREAD ONLY.
@@ -623,6 +870,12 @@ def consume_queue_tick(state: dict, delta_seconds: float):
     2. Advance the active generator task under its own 8 ms budget
        (the generator self-yields on budget overrun).
     """
+    global _CONSUME_TICK_DEPTH
+    if _CONSUME_TICK_DEPTH > 0:
+        # Heavy unreal ops inside a yield (SavePackage, SetHeightData, etc.)
+        # re-enter the Slate tick; never call next() on the same generator.
+        return
+    _CONSUME_TICK_DEPTH += 1
     try:
         queue = state["command_queue"]
         # Drain a bounded number per frame to avoid pathological floods
@@ -645,6 +898,8 @@ def consume_queue_tick(state: dict, delta_seconds: float):
                 unreal.log_error("WorldPromptEngine: task crashed: {}".format(task_e))
     except Exception as e:
         unreal.log_error("art_engine.consume_queue_tick failed: {}".format(e))
+    finally:
+        _CONSUME_TICK_DEPTH -= 1
 
 
 # ---------------------------------------------------------------------------

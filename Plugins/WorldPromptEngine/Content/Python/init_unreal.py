@@ -43,9 +43,23 @@ GLOBAL_STATE = {
     "pcg_spawn_table": [],          # resolved asset_manifest entries
     "last_slope_map": None,         # per-pixel material layer indices
     "slope_layer_names": [],
+    "last_weightmaps": None,        # grass/rock/snow weightmaps + paths
+    "last_material_summary": None,
+    "moisture": 0.5,                # prompt-derived moisture for erosion/PCG
+    "pcg_volume": None,
+    "last_pcg_summary": None,
+    "pcg_density": 0.0,
+    "biome_regions": None,
+    "biome_mask_summary": None,
+    "last_routes": None,
+    "spline_actors": [],
+    "hism_actors": [],
+    "last_atmosphere": None,
     "structure_plan": [],           # resolved structure types for last prompt
     "structure_actors": [],         # spawned structure actors
     "last_structure_summary": None,
+    "kit_actors": [],               # spawned user-kit (Fab) meshes
+    "last_kit_summary": None,
 }
 
 _TICK_HANDLE = None
@@ -64,11 +78,48 @@ def _post_tick(delta_seconds: float):
         unreal.log_error("WorldPromptEngine._post_tick failed: {}".format(e))
 
 
+
+def _force_mac_editor_visible():
+    """Mac: recover when Level Editor opens off-space after monitor changes."""
+    try:
+        world = None
+        try:
+            world = unreal.EditorLevelLibrary.get_editor_world()
+        except Exception:
+            world = None
+        # Console commands that reload a known-good single-window layout
+        for cmd in (
+            "LoadDefaultLayout",
+            "Editor.LoadDefaultLayout",
+            "MainFrame.LoadDefaultLayout",
+        ):
+            try:
+                unreal.SystemLibrary.execute_console_command(world, cmd)
+                unreal.log("WorldPromptEngine: tried {}".format(cmd))
+            except Exception:
+                pass
+    except Exception as e:
+        unreal.log_warning("WorldPromptEngine: mac window recover failed: {}".format(e))
+
+
+_MAC_VISIBLE_FRAMES = {"n": 0}
+
+def _mac_visible_tick(delta_seconds: float):
+    try:
+        _MAC_VISIBLE_FRAMES["n"] += 1
+        # Run once ~2s after editor is up
+        if _MAC_VISIBLE_FRAMES["n"] == 120:
+            _force_mac_editor_visible()
+    except Exception:
+        pass
+
+
 def _register_tick():
     global _TICK_HANDLE
     try:
         if hasattr(unreal, "register_slate_post_tick_callback"):
             _TICK_HANDLE = unreal.register_slate_post_tick_callback(_post_tick)
+            unreal.register_slate_post_tick_callback(_mac_visible_tick)
             unreal.log("WorldPromptEngine: Slate post-tick callback registered")
         else:
             unreal.log_error("WorldPromptEngine: register_slate_post_tick_callback unavailable")
@@ -265,6 +316,54 @@ def preforge_structures(force: bool = False):
     except Exception as e:
         unreal.log_error("WorldPromptEngine.preforge_structures failed: {}".format(e))
         return {"ok": False, "error": str(e)}
+
+
+def capture_selected_as_kit(kit_name: str = None):
+    """
+    Select Fab StaticMeshes in Content Browser, then:
+
+      init_unreal.capture_selected_as_kit('MyFabKit')
+
+    Creates /Game/WPE/Kits/<name> and uses it on generate_world.
+    """
+    try:
+        import kit_library
+        return kit_library.capture_selected_as_kit(kit_name=kit_name)
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.capture_selected_as_kit failed: {}".format(e))
+        return {"ok": False, "error": str(e)}
+
+
+def setup_landscape_material(force: bool = False):
+    """
+    Auto-create Grass/Rock/Snow landscape material and assign it.
+
+      init_unreal.setup_landscape_material()
+    """
+    try:
+        import landscape_auto_setup
+        result = landscape_auto_setup.ensure_landscape_material_stack(
+            force_rebuild=force, assign=True)
+        unreal.log("WorldPromptEngine.setup_landscape_material: {}".format(result))
+        return result
+    except Exception as e:
+        unreal.log_error("WorldPromptEngine.setup_landscape_material failed: {}".format(e))
+        return {"ok": False, "error": str(e)}
+
+
+def demo_alpine():
+    import demo_presets
+    return demo_presets.run_alpine()
+
+
+def demo_underwater():
+    import demo_presets
+    return demo_presets.run_underwater()
+
+
+def demo_desert():
+    import demo_presets
+    return demo_presets.run_desert()
 
 
 def open_ui():
